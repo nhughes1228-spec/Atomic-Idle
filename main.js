@@ -25,7 +25,7 @@ const upgrades = [
   { id: "noble_gas_buffer", name: "Noble Gas Buffer", description: "Helium production x2.", cost: 3600, requires: state => getElementState(state, "He").level >= 8, effect: state => { state.elementMultipliers.He *= 2; } },
   { id: "calibrated_counter", name: "Calibrated Counter", description: "All production +15% and active element clicks +15%.", cost: 5200, requires: state => isUnlocked(state, "He"), effect: state => { state.multipliers.global *= 1.15; state.multipliers.click *= 1.15; } },
   { id: "helium_recapture", name: "Helium Recapture", description: "Helium production +75% and offline cap +1 hour.", cost: 7600, requires: state => getElementState(state, "He").level >= 12, effect: state => { state.elementMultipliers.He *= 1.75; state.bonuses.offlineCapHours += 1; } },
-  { id: "lab_assistant", name: "Lab Assistant", description: "Adds a steady +1 virtual element click per second.", cost: 9500, requires: state => isUnlocked(state, "Li"), effect: state => { state.bonuses.autoClicksPerSecond += 1; } },
+  { id: "lab_assistant", name: "Lab Assistant", description: "Adds a steady +1 virtual click from your newest element per second.", cost: 9500, requires: state => isUnlocked(state, "Li"), effect: state => { state.bonuses.autoClicksPerSecond += 1; } },
   { id: "lithium_channels", name: "Lithium Channels", description: "Lithium production x2 and active element clicks +20%.", cost: 14500, requires: state => getElementState(state, "Li").level >= 4, effect: state => { state.elementMultipliers.Li *= 2; state.multipliers.click *= 1.2; } },
   { id: "ion_exchange", name: "Ion Exchange Rack", description: "Every discovered element adds +2% global production.", cost: 21500, requires: state => isUnlocked(state, "Li"), effect: state => { state.bonuses.perElementGlobal += 0.02; } },
   { id: "alkali_boost", name: "Alkali Boost", description: "Lithium production +80% and level costs -4%.", cost: 33500, requires: state => getElementState(state, "Li").level >= 8, effect: state => { state.elementMultipliers.Li *= 1.8; state.bonuses.costReduction += 0.04; } },
@@ -35,16 +35,16 @@ const upgrades = [
   { id: "structural_scaffold", name: "Structural Scaffold", description: "Beryllium production +75% and every discovered element adds +2% production.", cost: 185000, requires: state => getElementState(state, "Be").level >= 7, effect: state => { state.elementMultipliers.Be *= 1.75; state.bonuses.perElementGlobal += 0.02; } },
   { id: "boron_efficiency", name: "Boron Efficiency Matrix", description: "All unlocked elements produce 40% more Particles.", cost: 380000, requires: state => getElementState(state, "B").level >= 3, effect: state => { state.multipliers.global *= 1.4; } },
   { id: "semiconductor_grid", name: "Semiconductor Grid", description: "Boron production x2 and level costs -5%.", cost: 540000, requires: state => isUnlocked(state, "B"), effect: state => { state.elementMultipliers.B *= 2; state.bonuses.costReduction += 0.05; } },
-  { id: "boron_doping", name: "Boron Doping", description: "Active element clicks gain +6% of passive production.", cost: 780000, requires: state => getElementState(state, "B").level >= 5, effect: state => { state.bonuses.clickFromPassive += 0.06; } },
+  { id: "boron_doping", name: "Boron Doping", description: "Active and virtual clicks gain +6% of passive production.", cost: 780000, requires: state => getElementState(state, "B").level >= 5, effect: state => { state.bonuses.clickFromPassive += 0.06; } },
   { id: "carbon_lattice", name: "Carbon Lattice", description: "Every discovered element adds +4% global production.", cost: 2400000, requires: state => isUnlocked(state, "C"), effect: state => { state.bonuses.perElementGlobal += 0.04; } },
   { id: "carbon_chains", name: "Carbon Chains", description: "Carbon production x2 and all production +15%.", cost: 3600000, requires: state => getElementState(state, "C").level >= 3, effect: state => { state.elementMultipliers.C *= 2; state.multipliers.global *= 1.15; } },
   { id: "compound_modeling", name: "Compound Modeling", description: "Active element clicks +50% and level costs -5%.", cost: 5200000, requires: state => isUnlocked(state, "C"), effect: state => { state.multipliers.click *= 1.5; state.bonuses.costReduction += 0.05; } },
   { id: "nitrogen_modeling", name: "Nitrogen Modeling", description: "Future Research gains are increased by 25%.", cost: 16500000, requires: state => isUnlocked(state, "N"), effect: state => { state.bonuses.researchGain *= 1.25; } },
   { id: "pressure_vessel", name: "Pressure Vessel", description: "Nitrogen production x2 and all production +20%.", cost: 24500000, requires: state => getElementState(state, "N").level >= 3, effect: state => { state.elementMultipliers.N *= 2; state.multipliers.global *= 1.2; } },
-  { id: "reaction_forecasting", name: "Reaction Forecasting", description: "Active element clicks gain +8% of passive production.", cost: 36000000, requires: state => isUnlocked(state, "N"), effect: state => { state.bonuses.clickFromPassive += 0.08; } },
+  { id: "reaction_forecasting", name: "Reaction Forecasting", description: "Active and virtual clicks gain +8% of passive production.", cost: 36000000, requires: state => isUnlocked(state, "N"), effect: state => { state.bonuses.clickFromPassive += 0.08; } },
   { id: "oxygen_reaction_web", name: "Oxygen Reaction Web", description: "Unlocks a simulated water-cycle bonus: all production x1.75.", cost: 110000000, requires: state => isUnlocked(state, "O") && isUnlocked(state, "H"), effect: state => { state.multipliers.global *= 1.75; } },
   { id: "oxidation_cycle", name: "Oxidation Cycle", description: "Oxygen production x2 and level costs -6%.", cost: 165000000, requires: state => getElementState(state, "O").level >= 3, effect: state => { state.elementMultipliers.O *= 2; state.bonuses.costReduction += 0.06; } },
-  { id: "catalyst_cloud", name: "Catalyst Cloud", description: "All production +30% and virtual clicks +1/sec.", cost: 230000000, requires: state => isUnlocked(state, "O"), effect: state => { state.multipliers.global *= 1.3; state.bonuses.autoClicksPerSecond += 1; } },
+  { id: "catalyst_cloud", name: "Catalyst Cloud", description: "All production +30% and virtual newest-element clicks +1/sec.", cost: 230000000, requires: state => isUnlocked(state, "O"), effect: state => { state.multipliers.global *= 1.3; state.bonuses.autoClicksPerSecond += 1; } },
   { id: "fluorine_catalyst", name: "Fluorine Catalyst", description: "Click power and passive production both increase by 65%.", cost: 720000000, requires: state => isUnlocked(state, "F"), effect: state => { state.multipliers.global *= 1.65; state.multipliers.click *= 1.65; } },
   { id: "halogen_surge", name: "Halogen Surge", description: "Fluorine production x2 and active element clicks +50%.", cost: 1100000000, requires: state => getElementState(state, "F").level >= 3, effect: state => { state.elementMultipliers.F *= 2; state.multipliers.click *= 1.5; } },
   { id: "neon_tube_array", name: "Neon Tube Array", description: "Neon production x2 and all production +35%.", cost: 2900000000, requires: state => isUnlocked(state, "Ne"), effect: state => { state.elementMultipliers.Ne *= 2; state.multipliers.global *= 1.35; } },
@@ -190,17 +190,26 @@ function getElementProduction(element, current = state) {
 function getParticlesPerSecond(current = state) {
   if (!current.hasStarted) return 0;
   const elementProduction = elements.reduce((sum, element) => sum + getElementProduction(element, current), 0);
-  const autoClickProduction = getClickPower(current) * current.bonuses.autoClicksPerSecond;
+  const autoClickProduction = getAutoClickPower(current) * current.bonuses.autoClicksPerSecond;
   return elementProduction + autoClickProduction;
+}
+
+function getElementClickPower(element, current = state) {
+  const elementState = getElementState(current, element.symbol);
+  const activeLevel = elementState?.level || 1;
+  const hydrogenLevel = getElementState(current, "H")?.level || 1;
+  const levelContribution = 1 + Math.floor(hydrogenLevel / 8) + Math.floor(activeLevel / 10);
+  const elementTapWeight = getElementTapWeight(element);
+  return (levelContribution * elementTapWeight * current.multipliers.click) + (getParticlesPerSecondWithoutClickShare(current) * current.bonuses.clickFromPassive);
 }
 
 function getClickPower(current = state) {
   const activeElement = elements.find(element => element.symbol === current.selectedSymbol) || getNewestUnlockedElement(current);
-  const activeLevel = getElementState(current, activeElement.symbol)?.level || 1;
-  const hydrogenLevel = getElementState(current, "H")?.level || 1;
-  const levelContribution = 1 + Math.floor(hydrogenLevel / 8) + Math.floor(activeLevel / 10);
-  const elementTapWeight = getElementTapWeight(activeElement);
-  return (levelContribution * elementTapWeight * current.multipliers.click) + (getParticlesPerSecondWithoutClickShare(current) * current.bonuses.clickFromPassive);
+  return getElementClickPower(activeElement, current);
+}
+
+function getAutoClickPower(current = state) {
+  return getElementClickPower(getNewestUnlockedElement(current), current);
 }
 
 function getParticlesPerSecondWithoutClickShare(current = state) {
@@ -356,8 +365,8 @@ function updateLiveUI() {
   dom.particlesDisplay.textContent = formatNumber(state.particles);
   dom.ppsDisplay.textContent = formatNumber(pps);
   dom.clickDisplay.textContent = formatNumber(clickPower);
-  dom.researchDisplay.textContent = formatNumber(state.research);
   dom.clickHelpDisplay.textContent = formatNumber(clickPower);
+  dom.researchDisplay.textContent = formatNumber(state.research);
   updateObjective();
   updateTableState();
   updateUpgradeState();
@@ -439,7 +448,7 @@ function renderDetails() {
   dom.elementDetails.innerHTML = `
     <div class="detail-row"><span>Active Tap Target</span><strong>${element.symbol}</strong></div>
     <div class="detail-row"><span>Tap Power</span><strong>${formatNumber(getClickPower())}</strong></div>
-    <div class="detail-row"><span>Element Tap Weight</span><strong>${formatNumber(getElementTapWeight(element))}x</strong></div>
+    <div class="detail-row"><span>Virtual Tap Power</span><strong>${formatNumber(getAutoClickPower())}</strong></div>
     <div class="detail-row"><span>Level</span><strong>${elementState.level}</strong></div>
     <div class="detail-row"><span>Production</span><strong>${formatNumber(getElementProduction(element))}/sec</strong></div>
     <div class="buy-row">
