@@ -16,11 +16,11 @@ const elements = [
 ];
 
 const upgrades = [
-  { id: "focused_chamber", name: "Focused Chamber", description: "Doubles Particle gain from tapping the Reaction Chamber.", cost: 90, requires: () => true, effect: state => { state.multipliers.click *= 2; } },
+  { id: "focused_chamber", name: "Focused Chamber", description: "Doubles Particle gain from clicking the active element.", cost: 90, requires: () => true, effect: state => { state.multipliers.click *= 2; } },
   { id: "hydrogen_containment", name: "Hydrogen Containment", description: "Hydrogen production x2. The first element stays relevant longer.", cost: 260, requires: state => getElementState(state, "H").level >= 8, effect: state => { state.elementMultipliers.H *= 2; } },
-  { id: "magnetic_lens", name: "Magnetic Lens", description: "Clicks gain +10% of total passive production.", cost: 850, requires: state => isUnlocked(state, "He"), effect: state => { state.bonuses.clickFromPassive += 0.10; } },
+  { id: "magnetic_lens", name: "Magnetic Lens", description: "Element clicks gain +10% of total passive production.", cost: 850, requires: state => isUnlocked(state, "He"), effect: state => { state.bonuses.clickFromPassive += 0.10; } },
   { id: "helium_cooling", name: "Helium Cooling Loop", description: "All passive Particle production +25% and offline cap +1 hour.", cost: 2400, requires: state => getElementState(state, "He").level >= 5, effect: state => { state.multipliers.global *= 1.25; state.bonuses.offlineCapHours += 1; } },
-  { id: "lab_assistant", name: "Lab Assistant", description: "Adds a steady +1 virtual click per second.", cost: 9500, requires: state => isUnlocked(state, "Li"), effect: state => { state.bonuses.autoClicksPerSecond += 1; } },
+  { id: "lab_assistant", name: "Lab Assistant", description: "Adds a steady +1 virtual element click per second.", cost: 9500, requires: state => isUnlocked(state, "Li"), effect: state => { state.bonuses.autoClicksPerSecond += 1; } },
   { id: "beryllium_frame", name: "Beryllium Frame", description: "Element level costs are reduced by 8%.", cost: 65000, requires: state => isUnlocked(state, "Be"), effect: state => { state.bonuses.costReduction += 0.08; } },
   { id: "boron_efficiency", name: "Boron Efficiency Matrix", description: "All unlocked elements produce 40% more Particles.", cost: 380000, requires: state => getElementState(state, "B").level >= 3, effect: state => { state.multipliers.global *= 1.4; } },
   { id: "carbon_lattice", name: "Carbon Lattice", description: "Every discovered element adds +4% global production.", cost: 2400000, requires: state => isUnlocked(state, "C"), effect: state => { state.bonuses.perElementGlobal += 0.04; } },
@@ -56,7 +56,6 @@ const dom = {
   researchDisplay: document.getElementById("research-display"),
   clickHelpDisplay: document.getElementById("click-help-display"),
   objectiveDisplay: document.getElementById("objective-display"),
-  chamberButton: document.getElementById("chamber-button"),
   periodicTable: document.getElementById("periodic-table"),
   selectedName: document.getElementById("selected-name"),
   elementDetails: document.getElementById("element-details"),
@@ -150,6 +149,7 @@ function getElementState(current, symbol) { return current.elements[symbol]; }
 function isUnlocked(current, symbol) { return Boolean(getElementState(current, symbol)?.unlocked); }
 function getUnlockedElements(current = state) { return elements.filter(element => isUnlocked(current, element.symbol)); }
 function getGlobalMultiplier(current = state) { return current.multipliers.global * (1 + getUnlockedElements(current).length * current.bonuses.perElementGlobal); }
+function getActiveElement() { return elements.find(element => element.symbol === state.selectedSymbol) || elements[0]; }
 
 function getElementProduction(element, current = state) {
   const elementState = getElementState(current, element.symbol);
@@ -167,8 +167,9 @@ function getParticlesPerSecond(current = state) {
 }
 
 function getClickPower(current = state) {
+  const activeLevel = getElementState(current, current.selectedSymbol)?.level || 1;
   const hydrogenLevel = getElementState(current, "H")?.level || 1;
-  const base = 1 + Math.floor(hydrogenLevel / 6);
+  const base = 1 + Math.floor(hydrogenLevel / 6) + Math.floor(activeLevel / 12);
   return (base * current.multipliers.click) + (getParticlesPerSecondWithoutClickShare(current) * current.bonuses.clickFromPassive);
 }
 
@@ -201,29 +202,33 @@ function getNextElement() { return elements.find(element => !isUnlocked(state, e
 function getUnlockCost(element) { return element.unlockCost * (1 - Math.min(0.55, state.research * 0.012)); }
 function addParticles(amount) { state.particles += amount; state.lifetimeParticles += amount; }
 
-function activateLabFromHydrogen() {
+function activateLabFromHydrogen(event) {
   state.hasStarted = true;
   state.selectedSymbol = "H";
-  showToast("Hydrogen selected. Reaction Chamber online.");
-  render();
+  clickActiveElement(event, { silentStart: true });
+  showToast("Hydrogen active. Click the highlighted tile to generate Particles.");
   saveGame();
 }
 
-function clickChamber(event) {
-  if (!state.hasStarted) return showToast("Select Hydrogen on the periodic table first.");
+function clickActiveElement(event, options = {}) {
+  if (!state.hasStarted) return showToast("Begin with Hydrogen first.");
   const gain = getClickPower();
   addParticles(gain);
   spawnFloatText(`+${formatNumber(gain)}`, event?.clientX, event?.clientY);
-  render();
+  if (!options.skipRender) render();
 }
 
-function unlockElement(symbol) {
+function unlockElement(symbol, event) {
   const element = elements.find(item => item.symbol === symbol);
   if (!element) return;
   const elementState = getElementState(state, symbol);
-  if (!state.hasStarted && symbol === "H") return activateLabFromHydrogen();
+  if (!state.hasStarted && symbol === "H") return activateLabFromHydrogen(event);
   if (!state.hasStarted) return showToast("Begin with Hydrogen first.");
-  if (elementState.unlocked) { selectElement(symbol); return; }
+  if (elementState.unlocked) {
+    state.selectedSymbol = symbol;
+    clickActiveElement(event);
+    return;
+  }
   const next = getNextElement();
   if (next?.symbol !== symbol) return showToast(`${element.name} is not the current discovery frontier yet.`);
   const cost = getUnlockCost(element);
@@ -233,17 +238,9 @@ function unlockElement(symbol) {
   elementState.level = 1;
   state.discoveredHighest = Math.max(state.discoveredHighest, element.atomicNumber);
   state.selectedSymbol = symbol;
-  showToast(`Element discovered: ${element.name}.`);
+  showToast(`Element discovered: ${element.name}. It is now your active click target.`);
   render();
   saveGame();
-}
-
-function selectElement(symbol) {
-  if (!state.elements[symbol]) return;
-  if (!state.hasStarted && symbol === "H") return activateLabFromHydrogen();
-  if (!state.hasStarted) return showToast("Begin with Hydrogen first.");
-  state.selectedSymbol = symbol;
-  render();
 }
 
 function buyLevels(symbol, quantity) {
@@ -285,7 +282,7 @@ function publishResearch() {
   state.research = oldResearch + gain;
   state.publishedCount += 1;
   rebuildDerivedEffects(state);
-  showToast(`Published findings: +${formatNumber(gain)} Research. Select Hydrogen to begin the next experiment.`);
+  showToast(`Published findings: +${formatNumber(gain)} Research. Click Hydrogen to begin the next experiment.`);
   render();
   saveGame();
 }
@@ -315,7 +312,7 @@ function render() {
 
 function renderObjective() {
   if (!state.hasStarted) {
-    dom.objectiveDisplay.textContent = "Select Hydrogen on the periodic table to initialize the lab.";
+    dom.objectiveDisplay.textContent = "Click Hydrogen on the periodic table to begin generating Particles.";
     return;
   }
   const next = getNextElement();
@@ -340,6 +337,7 @@ function renderTable() {
     tile.style.gridRow = element.row;
     if (!elementState.unlocked) tile.classList.add("locked");
     if (!state.hasStarted && element.symbol === "H") tile.classList.add("initial-element");
+    if (state.hasStarted && element.symbol === state.selectedSymbol) tile.classList.add("active-click-target");
     if (state.hasStarted && next?.symbol === element.symbol) tile.classList.add("frontier");
     if (state.hasStarted && next?.symbol === element.symbol && state.particles >= getUnlockCost(element)) tile.classList.add("affordable");
     if (state.hasStarted && state.selectedSymbol === element.symbol) tile.classList.add("selected");
@@ -349,31 +347,24 @@ function renderTable() {
       <span class="element-name">${elementState.unlocked ? element.name : state.hasStarted && next?.symbol === element.symbol ? formatNumber(getUnlockCost(element)) : "Locked"}</span>
       <span class="element-level">${elementState.unlocked && state.hasStarted ? `Lv. ${elementState.level}` : state.hasStarted && next?.symbol === element.symbol ? "Frontier" : ""}</span>
     `;
-    tile.addEventListener("click", () => {
-      if (elementState.unlocked) selectElement(element.symbol);
-      else unlockElement(element.symbol);
-    });
+    tile.addEventListener("click", event => unlockElement(element.symbol, event));
     dom.periodicTable.appendChild(tile);
   }
 }
 
 function renderDetails() {
-  const element = elements.find(item => item.symbol === state.selectedSymbol) || elements[0];
+  const element = getActiveElement();
   const elementState = getElementState(state, element.symbol);
   dom.selectedName.textContent = element.name;
   if (!state.hasStarted) {
-    dom.elementDetails.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>Lab inactive.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Click Hydrogen on the periodic table to open the Reaction Chamber and element controls.</p></div>`;
-    return;
-  }
-  if (!elementState.unlocked) {
-    dom.elementDetails.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>${element.name} is locked.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Reach it as the next discovery frontier to activate this element.</p></div>`;
+    dom.elementDetails.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>Table inactive.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Click Hydrogen directly on the periodic table to start producing Particles.</p></div>`;
     return;
   }
   const cost1 = getLevelCost(element, 1);
   const cost10 = getLevelCost(element, 10);
   const max = getBuyMaxQuantity(element);
   dom.elementDetails.innerHTML = `
-    <div class="detail-row"><span>Symbol</span><strong>${element.symbol}</strong></div>
+    <div class="detail-row"><span>Active Click Target</span><strong>${element.symbol}</strong></div>
     <div class="detail-row"><span>Atomic #</span><strong>${element.atomicNumber}</strong></div>
     <div class="detail-row"><span>Role</span><strong>${element.role}</strong></div>
     <div class="detail-row"><span>Level</span><strong>${elementState.level}</strong></div>
@@ -392,7 +383,7 @@ function renderDetails() {
 
 function renderUpgrades() {
   if (!state.hasStarted) {
-    dom.upgradesList.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>Upgrades locked.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Select Hydrogen to bring the lab systems online.</p></div>`;
+    dom.upgradesList.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>Upgrades locked.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Click Hydrogen to bring the table online.</p></div>`;
     return;
   }
   const visible = upgrades.filter(upgrade => !state.purchasedUpgrades.includes(upgrade.id) && upgrade.requires(state));
@@ -447,12 +438,11 @@ function formatNumber(value) {
 }
 
 function spawnFloatText(text, x, y) {
-  const rect = dom.chamberButton.getBoundingClientRect();
   const float = document.createElement("span");
   float.className = "float-text";
   float.textContent = text;
-  float.style.left = `${x || rect.left + rect.width / 2}px`;
-  float.style.top = `${y || rect.top + rect.height / 2}px`;
+  float.style.left = `${x || window.innerWidth / 2}px`;
+  float.style.top = `${y || window.innerHeight / 2}px`;
   dom.floatLayer.appendChild(float);
   setTimeout(() => float.remove(), 900);
 }
@@ -496,7 +486,6 @@ function resetSave() {
 }
 
 function wireEvents() {
-  dom.chamberButton.addEventListener("click", clickChamber);
   dom.saveButton.addEventListener("click", () => saveGame(true));
   dom.exportButton.addEventListener("click", exportSave);
   dom.importButton.addEventListener("click", importSave);
