@@ -48,6 +48,8 @@ const defaultState = () => ({
 let state = loadGame();
 let toastTimeout = null;
 let lastTick = performance.now();
+const tileRefs = new Map();
+const upgradeRefs = new Map();
 
 const dom = {
   particlesDisplay: document.getElementById("particles-display"),
@@ -205,8 +207,9 @@ function addParticles(amount) { state.particles += amount; state.lifetimeParticl
 function activateLabFromHydrogen(event) {
   state.hasStarted = true;
   state.selectedSymbol = "H";
-  clickActiveElement(event, { silentStart: true });
+  clickActiveElement(event, { skipFullRender: true });
   showToast("Hydrogen active. Click the highlighted tile to generate Particles.");
+  renderFull();
   saveGame();
 }
 
@@ -215,7 +218,8 @@ function clickActiveElement(event, options = {}) {
   const gain = getClickPower();
   addParticles(gain);
   spawnFloatText(`+${formatNumber(gain)}`, event?.clientX, event?.clientY);
-  if (!options.skipRender) render();
+  if (options.skipFullRender) updateLiveUI();
+  else updateLiveUI();
 }
 
 function unlockElement(symbol, event) {
@@ -227,6 +231,7 @@ function unlockElement(symbol, event) {
   if (elementState.unlocked) {
     state.selectedSymbol = symbol;
     clickActiveElement(event);
+    renderFull();
     return;
   }
   const next = getNextElement();
@@ -239,7 +244,7 @@ function unlockElement(symbol, event) {
   state.discoveredHighest = Math.max(state.discoveredHighest, element.atomicNumber);
   state.selectedSymbol = symbol;
   showToast(`Element discovered: ${element.name}. It is now your active click target.`);
-  render();
+  renderFull();
   saveGame();
 }
 
@@ -257,7 +262,7 @@ function buyLevels(symbol, quantity) {
   if (state.particles < cost) return showToast(`Need ${formatNumber(cost)} Particles.`);
   state.particles -= cost;
   getElementState(state, symbol).level += amount;
-  render();
+  renderFull();
 }
 
 function buyUpgrade(upgradeId) {
@@ -269,7 +274,7 @@ function buyUpgrade(upgradeId) {
   state.purchasedUpgrades.push(upgradeId);
   rebuildDerivedEffects(state);
   showToast(`Upgrade purchased: ${upgrade.name}.`);
-  render();
+  renderFull();
   saveGame();
 }
 
@@ -283,7 +288,7 @@ function publishResearch() {
   state.publishedCount += 1;
   rebuildDerivedEffects(state);
   showToast(`Published findings: +${formatNumber(gain)} Research. Click Hydrogen to begin the next experiment.`);
-  render();
+  renderFull();
   saveGame();
 }
 
@@ -294,8 +299,16 @@ function calculateResearchGain() {
   return Math.max(1, Math.floor((lifetimeComponent + discoveryComponent) * state.bonuses.researchGain));
 }
 
-function render() {
+function renderFull() {
   document.body.classList.toggle("lab-not-started", !state.hasStarted);
+  renderTable();
+  renderDetails();
+  renderUpgrades();
+  renderPrestige();
+  updateLiveUI();
+}
+
+function updateLiveUI() {
   const pps = getParticlesPerSecond();
   const clickPower = getClickPower();
   dom.particlesDisplay.textContent = formatNumber(state.particles);
@@ -303,14 +316,12 @@ function render() {
   dom.clickDisplay.textContent = formatNumber(clickPower);
   dom.researchDisplay.textContent = formatNumber(state.research);
   dom.clickHelpDisplay.textContent = formatNumber(clickPower);
-  renderObjective();
-  renderTable();
-  renderDetails();
-  renderUpgrades();
-  renderPrestige();
+  updateObjective();
+  updateTableState();
+  updateUpgradeState();
 }
 
-function renderObjective() {
+function updateObjective() {
   if (!state.hasStarted) {
     dom.objectiveDisplay.textContent = "Click Hydrogen on the periodic table to begin generating Particles.";
     return;
@@ -327,28 +338,44 @@ function renderObjective() {
 
 function renderTable() {
   dom.periodicTable.innerHTML = "";
-  const next = getNextElement();
+  tileRefs.clear();
   for (const element of elements) {
-    const elementState = getElementState(state, element.symbol);
     const tile = document.createElement("button");
     tile.type = "button";
     tile.className = `element-tile category-${element.category}`;
     tile.style.gridColumn = element.col;
     tile.style.gridRow = element.row;
-    if (!elementState.unlocked) tile.classList.add("locked");
-    if (!state.hasStarted && element.symbol === "H") tile.classList.add("initial-element");
-    if (state.hasStarted && element.symbol === state.selectedSymbol) tile.classList.add("active-click-target");
-    if (state.hasStarted && next?.symbol === element.symbol) tile.classList.add("frontier");
-    if (state.hasStarted && next?.symbol === element.symbol && state.particles >= getUnlockCost(element)) tile.classList.add("affordable");
-    if (state.hasStarted && state.selectedSymbol === element.symbol) tile.classList.add("selected");
     tile.innerHTML = `
       <span class="element-number">${element.atomicNumber}</span>
       <span class="element-symbol">${element.symbol}</span>
-      <span class="element-name">${elementState.unlocked ? element.name : state.hasStarted && next?.symbol === element.symbol ? formatNumber(getUnlockCost(element)) : "Locked"}</span>
-      <span class="element-level">${elementState.unlocked && state.hasStarted ? `Lv. ${elementState.level}` : state.hasStarted && next?.symbol === element.symbol ? "Frontier" : ""}</span>
+      <span class="element-name" data-role="name"></span>
+      <span class="element-level" data-role="level"></span>
     `;
     tile.addEventListener("click", event => unlockElement(element.symbol, event));
     dom.periodicTable.appendChild(tile);
+    tileRefs.set(element.symbol, {
+      tile,
+      name: tile.querySelector('[data-role="name"]'),
+      level: tile.querySelector('[data-role="level"]')
+    });
+  }
+  updateTableState();
+}
+
+function updateTableState() {
+  const next = getNextElement();
+  for (const element of elements) {
+    const refs = tileRefs.get(element.symbol);
+    if (!refs) continue;
+    const elementState = getElementState(state, element.symbol);
+    refs.tile.classList.toggle("locked", !elementState.unlocked);
+    refs.tile.classList.toggle("initial-element", !state.hasStarted && element.symbol === "H");
+    refs.tile.classList.toggle("active-click-target", state.hasStarted && element.symbol === state.selectedSymbol);
+    refs.tile.classList.toggle("frontier", state.hasStarted && next?.symbol === element.symbol);
+    refs.tile.classList.toggle("affordable", state.hasStarted && next?.symbol === element.symbol && state.particles >= getUnlockCost(element));
+    refs.tile.classList.toggle("selected", state.hasStarted && state.selectedSymbol === element.symbol);
+    refs.name.textContent = elementState.unlocked ? element.name : state.hasStarted && next?.symbol === element.symbol ? formatNumber(getUnlockCost(element)) : "Locked";
+    refs.level.textContent = elementState.unlocked && state.hasStarted ? `Lv. ${elementState.level}` : state.hasStarted && next?.symbol === element.symbol ? "Frontier" : "";
   }
 }
 
@@ -382,6 +409,7 @@ function renderDetails() {
 }
 
 function renderUpgrades() {
+  upgradeRefs.clear();
   if (!state.hasStarted) {
     dom.upgradesList.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>Upgrades locked.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Click Hydrogen to bring the table online.</p></div>`;
     return;
@@ -396,10 +424,18 @@ function renderUpgrades() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "upgrade-card";
-    button.disabled = state.particles < upgrade.cost;
     button.innerHTML = `<div class="upgrade-meta"><span>Upgrade</span><span>${formatNumber(upgrade.cost)}</span></div><h3>${upgrade.name}</h3><p>${upgrade.description}</p>`;
     button.addEventListener("click", () => buyUpgrade(upgrade.id));
     dom.upgradesList.appendChild(button);
+    upgradeRefs.set(upgrade.id, button);
+  }
+  updateUpgradeState();
+}
+
+function updateUpgradeState() {
+  for (const [upgradeId, button] of upgradeRefs.entries()) {
+    const upgrade = upgrades.find(item => item.id === upgradeId);
+    if (upgrade) button.disabled = state.particles < upgrade.cost;
   }
 }
 
@@ -423,7 +459,7 @@ function gameLoop(now) {
     const gain = getParticlesPerSecond() * delta;
     if (gain > 0) addParticles(gain);
   }
-  render();
+  updateLiveUI();
   requestAnimationFrame(gameLoop);
 }
 
@@ -469,7 +505,7 @@ function importSave() {
     JSON.parse(decoded);
     localStorage.setItem(SAVE_KEY, decoded);
     state = loadGame();
-    render();
+    renderFull();
     showToast("Save imported.");
   } catch (error) {
     showToast("That save could not be imported.");
@@ -481,7 +517,7 @@ function resetSave() {
   localStorage.removeItem(SAVE_KEY);
   state = defaultState();
   rebuildDerivedEffects(state);
-  render();
+  renderFull();
   showToast("Save reset.");
 }
 
@@ -497,5 +533,5 @@ function wireEvents() {
 
 rebuildDerivedEffects(state);
 wireEvents();
-render();
+renderFull();
 requestAnimationFrame(gameLoop);
