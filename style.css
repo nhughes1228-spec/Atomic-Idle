@@ -239,8 +239,13 @@ body.lab-not-started .periodic-table {
 }
 
 body.lab-not-started .element-tile {
-  opacity: 0.13;
-  filter: grayscale(1);
+  opacity: 0.62;
+  filter: grayscale(0.55) saturate(0.6);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+body.lab-not-started .element-tile.locked {
+  opacity: 0.52;
 }
 
 .element-tile.active-click-target,
