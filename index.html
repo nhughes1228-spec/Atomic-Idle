@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atomic Idle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <p class="eyebrow">Modern Chemistry Lab</p>
+        <h1>Atomic Idle</h1>
+        <p class="subtitle">Generate Particles, discover elements, and publish Research to make each experiment faster.</p>
+      </div>
+
+      <section class="stats-grid" aria-label="Lab statistics">
+        <div class="stat-card">
+          <span>Particles</span>
+          <strong id="particles-display">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>Particles/sec</span>
+          <strong id="pps-display">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>Click Power</span>
+          <strong id="click-display">1</strong>
+        </div>
+        <div class="stat-card research-card">
+          <span>Research</span>
+          <strong id="research-display">0</strong>
+        </div>
+      </section>
+    </header>
+
+    <main class="main-grid">
+      <section class="panel chamber-panel">
+        <div class="section-heading">
+          <p class="eyebrow">Reaction Chamber</p>
+          <h2>Generate Particles</h2>
+        </div>
+
+        <button id="chamber-button" class="chamber-button" type="button" aria-label="Generate Particles">
+          <span class="ring ring-a"></span>
+          <span class="ring ring-b"></span>
+          <span class="ring ring-c"></span>
+          <span class="core"></span>
+          <span class="chamber-label">Tap</span>
+        </button>
+
+        <p class="chamber-help">
+          Each click creates <strong id="click-help-display">1</strong> Particles. The second element is intentionally several minutes away on a fresh run.
+        </p>
+
+        <div class="objective-box">
+          <span>Current Objective</span>
+          <strong id="objective-display">Accumulate 350 Particles to discover Helium.</strong>
+        </div>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="section-heading row-heading">
+          <div>
+            <p class="eyebrow">Periodic Table</p>
+            <h2>Element Board</h2>
+          </div>
+          <button id="save-button" class="ghost-button" type="button">Save</button>
+        </div>
+        <div id="periodic-table" class="periodic-table" aria-label="Periodic table element board"></div>
+      </section>
+
+      <aside class="panel detail-panel">
+        <div class="section-heading">
+          <p class="eyebrow">Selected Element</p>
+          <h2 id="selected-name">Hydrogen</h2>
+        </div>
+        <div id="element-details" class="details-stack"></div>
+      </aside>
+
+      <aside class="panel upgrades-panel">
+        <div class="section-heading">
+          <p class="eyebrow">Lab Development</p>
+          <h2>Available Upgrades</h2>
+        </div>
+        <div id="upgrades-list" class="upgrades-list"></div>
+      </aside>
+    </main>
+
+    <section class="panel prestige-panel">
+      <div>
+        <p class="eyebrow">Publish Research</p>
+        <h2>Prestige System</h2>
+        <p id="prestige-copy">Discover Neon to publish your findings. Publishing resets the lab but grants permanent Research that accelerates future runs.</p>
+      </div>
+      <button id="prestige-button" class="primary-button" type="button" disabled>Unlock Neon First</button>
+    </section>
+
+    <footer class="footer-actions">
+      <button id="export-button" class="ghost-button" type="button">Export Save</button>
+      <button id="import-button" class="ghost-button" type="button">Import Save</button>
+      <button id="reset-button" class="danger-button" type="button">Reset Save</button>
+    </footer>
+  </div>
+
+  <div id="float-layer" class="float-layer" aria-hidden="true"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>
