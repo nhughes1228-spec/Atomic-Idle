@@ -17,9 +17,7 @@
   --soft-shadow: 0 12px 34px rgba(39, 65, 88, 0.10);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -32,9 +30,7 @@ body {
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-button {
-  font: inherit;
-}
+button { font: inherit; }
 
 .app-shell {
   width: min(1480px, calc(100% - 32px));
@@ -73,12 +69,7 @@ button {
   text-transform: uppercase;
 }
 
-h1,
-h2,
-h3,
-p {
-  margin-top: 0;
-}
+h1, h2, h3, p { margin-top: 0; }
 
 h1 {
   margin-bottom: 8px;
@@ -94,7 +85,7 @@ h2 {
 }
 
 .subtitle {
-  max-width: 56ch;
+  max-width: 58ch;
   margin-bottom: 0;
   color: var(--muted);
   font-weight: 650;
@@ -147,6 +138,100 @@ h2 {
   align-items: start;
 }
 
+body.lab-not-started .topbar {
+  grid-template-columns: 1fr;
+  max-width: 960px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+body.lab-not-started .brand-block {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  padding-bottom: 4px;
+}
+
+body.lab-not-started .stats-grid {
+  opacity: 0.45;
+  transform: scale(0.96);
+}
+
+body.lab-not-started .main-grid {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "table"
+    "chamber"
+    "details"
+    "upgrades";
+}
+
+body.lab-not-started .table-panel {
+  max-width: 1280px;
+  margin-inline: auto;
+  width: 100%;
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+
+body.lab-not-started .collapsed-panel,
+body.lab-not-started .prestige-panel,
+body.lab-not-started .footer-actions {
+  max-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+body.lab-not-started .periodic-table {
+  grid-template-columns: repeat(18, minmax(58px, 1fr));
+  gap: 8px;
+}
+
+body.lab-not-started .element-tile {
+  opacity: 0.15;
+  filter: grayscale(1);
+}
+
+body.lab-not-started .element-tile.initial-element {
+  opacity: 1;
+  filter: none;
+  border-color: rgba(47, 128, 237, 0.74);
+  box-shadow: 0 0 0 5px rgba(47, 128, 237, 0.14), 0 18px 42px rgba(47, 128, 237, 0.20);
+  animation: pulseTile 1.8s infinite;
+}
+
+body.lab-not-started .element-tile.initial-element::after {
+  content: "Start here";
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: max-content;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px rgba(47, 128, 237, 0.24);
+}
+
+.table-intro {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+body:not(.lab-not-started) .table-intro {
+  display: none;
+}
+
 .panel {
   border-radius: 28px;
   padding: 20px;
@@ -157,9 +242,7 @@ h2 {
 .detail-panel { grid-area: details; }
 .upgrades-panel { grid-area: upgrades; }
 
-.section-heading {
-  margin-bottom: 18px;
-}
+.section-heading { margin-bottom: 18px; }
 
 .row-heading {
   display: flex;
@@ -191,9 +274,7 @@ h2 {
   box-shadow: 0 34px 90px rgba(47, 128, 237, 0.42), inset 0 0 0 12px rgba(255, 255, 255, 0.42);
 }
 
-.chamber-button:active {
-  transform: translateY(1px) scale(0.985);
-}
+.chamber-button:active { transform: translateY(1px) scale(0.985); }
 
 .core {
   width: 22%;
@@ -268,7 +349,7 @@ h2 {
   grid-template-columns: repeat(18, minmax(42px, 1fr));
   gap: 6px;
   overflow-x: auto;
-  padding-bottom: 6px;
+  padding: 18px 4px 6px;
 }
 
 .element-tile {
@@ -282,12 +363,10 @@ h2 {
   color: var(--ink);
   cursor: pointer;
   text-align: left;
-  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, opacity 120ms ease;
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, opacity 120ms ease, filter 120ms ease;
 }
 
-.element-tile:hover {
-  transform: translateY(-2px);
-}
+.element-tile:hover { transform: translateY(-2px); }
 
 .element-tile.locked {
   cursor: default;
@@ -370,9 +449,7 @@ h2 {
   padding: 12px 13px;
 }
 
-.detail-row strong {
-  text-align: right;
-}
+.detail-row strong { text-align: right; }
 
 .buy-row {
   display: grid;
@@ -413,18 +490,9 @@ h2 {
   color: #b02a37;
 }
 
-.buy-button {
-  padding: 11px 8px;
-}
-
-.primary-button {
-  padding: 13px 18px;
-}
-
-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
+.buy-button { padding: 11px 8px; }
+.primary-button { padding: 13px 18px; }
+button:hover:not(:disabled) { transform: translateY(-1px); }
 button:disabled,
 .upgrade-card:disabled {
   cursor: not-allowed;
@@ -533,8 +601,8 @@ button:disabled,
 }
 
 @keyframes pulseTile {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(35, 163, 109, 0.13); }
-  50% { box-shadow: 0 0 0 7px rgba(35, 163, 109, 0.18); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.13); }
+  50% { box-shadow: 0 0 0 7px rgba(47, 128, 237, 0.20); }
 }
 
 @media (max-width: 1120px) {
@@ -545,8 +613,8 @@ button:disabled,
 
   .main-grid {
     grid-template-areas:
-      "chamber"
       "table"
+      "chamber"
       "details"
       "upgrades";
   }
@@ -558,13 +626,8 @@ button:disabled,
     padding-top: 10px;
   }
 
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .stat-card {
-    min-height: 94px;
-  }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-card { min-height: 94px; }
 
   .panel,
   .brand-block {
@@ -572,7 +635,8 @@ button:disabled,
     padding: 16px;
   }
 
-  .periodic-table {
+  .periodic-table,
+  body.lab-not-started .periodic-table {
     grid-template-columns: repeat(18, 52px);
   }
 
@@ -581,11 +645,6 @@ button:disabled,
     flex-direction: column;
   }
 
-  .footer-actions {
-    justify-content: stretch;
-  }
-
-  .footer-actions button {
-    flex: 1 1 auto;
-  }
+  .footer-actions { justify-content: stretch; }
+  .footer-actions button { flex: 1 1 auto; }
 }
