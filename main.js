@@ -48,6 +48,8 @@ const defaultState = () => ({
 let state = loadGame();
 let toastTimeout = null;
 let lastTick = performance.now();
+let pendingLiveUpdate = false;
+let floatToggle = 0;
 const tileRefs = new Map();
 const upgradeRefs = new Map();
 
@@ -207,19 +209,29 @@ function addParticles(amount) { state.particles += amount; state.lifetimeParticl
 function activateLabFromHydrogen(event) {
   state.hasStarted = true;
   state.selectedSymbol = "H";
-  clickActiveElement(event, { skipFullRender: true });
+  const gain = getClickPower();
+  addParticles(gain);
+  spawnFloatText(`+${formatNumber(gain)}`, event?.clientX, event?.clientY);
   showToast("Hydrogen active. Click the highlighted tile to generate Particles.");
   renderFull();
   saveGame();
 }
 
-function clickActiveElement(event, options = {}) {
+function clickActiveElement(event) {
   if (!state.hasStarted) return showToast("Begin with Hydrogen first.");
   const gain = getClickPower();
   addParticles(gain);
   spawnFloatText(`+${formatNumber(gain)}`, event?.clientX, event?.clientY);
-  if (options.skipFullRender) updateLiveUI();
-  else updateLiveUI();
+  requestLiveUpdate();
+}
+
+function requestLiveUpdate() {
+  if (pendingLiveUpdate) return;
+  pendingLiveUpdate = true;
+  requestAnimationFrame(() => {
+    pendingLiveUpdate = false;
+    updateLiveUI();
+  });
 }
 
 function unlockElement(symbol, event) {
@@ -229,6 +241,10 @@ function unlockElement(symbol, event) {
   if (!state.hasStarted && symbol === "H") return activateLabFromHydrogen(event);
   if (!state.hasStarted) return showToast("Begin with Hydrogen first.");
   if (elementState.unlocked) {
+    if (state.selectedSymbol === symbol) {
+      clickActiveElement(event);
+      return;
+    }
     state.selectedSymbol = symbol;
     clickActiveElement(event);
     renderFull();
@@ -474,6 +490,8 @@ function formatNumber(value) {
 }
 
 function spawnFloatText(text, x, y) {
+  floatToggle = (floatToggle + 1) % 3;
+  if (floatToggle !== 0) return;
   const float = document.createElement("span");
   float.className = "float-text";
   float.textContent = text;
