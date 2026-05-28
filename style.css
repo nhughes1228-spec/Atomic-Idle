@@ -17,6 +17,12 @@
 
 * { box-sizing: border-box; }
 
+html,
+body {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -28,7 +34,11 @@ body {
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-button { font: inherit; }
+button {
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
 
 .app-shell {
   width: min(1560px, calc(100% - 32px));
@@ -225,12 +235,15 @@ body.lab-not-started .periodic-table {
   color: var(--ink);
   cursor: pointer;
   text-align: left;
-  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, opacity 120ms ease, filter 120ms ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, opacity 120ms ease, filter 120ms ease;
   touch-action: manipulation;
+  user-select: none;
 }
 
-.element-tile:hover { transform: translateY(-2px); }
-.element-tile:active { transform: translateY(1px) scale(0.985); }
+.element-tile:hover,
+.element-tile:active {
+  transform: none;
+}
 
 .element-tile.locked {
   cursor: default;
@@ -254,14 +267,15 @@ body.lab-not-started .element-tile.initial-element {
   opacity: 1;
   filter: none;
   border-color: rgba(47, 128, 237, 0.82);
-  box-shadow: 0 0 0 5px rgba(47, 128, 237, 0.14), 0 20px 44px rgba(47, 128, 237, 0.24);
-  transform: scale(1.14);
+  outline: 4px solid rgba(47, 128, 237, 0.16);
+  outline-offset: 2px;
+  box-shadow: 0 20px 44px rgba(47, 128, 237, 0.24);
   animation: pulseTile 1.8s infinite;
 }
 
 .element-tile.active-click-target:hover,
 body.lab-not-started .element-tile.initial-element:hover {
-  transform: translateY(-2px) scale(1.18);
+  transform: none;
 }
 
 body.lab-not-started .element-tile.initial-element::after {
@@ -409,7 +423,7 @@ body.lab-not-started .element-tile.initial-element::after {
   border-radius: 14px;
   cursor: pointer;
   font-weight: 850;
-  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, opacity 120ms ease;
+  transition: box-shadow 120ms ease, border-color 120ms ease, opacity 120ms ease;
   touch-action: manipulation;
 }
 
@@ -434,7 +448,7 @@ body.lab-not-started .element-tile.initial-element::after {
 
 .buy-button { padding: 11px 8px; }
 .primary-button { padding: 13px 18px; }
-button:hover:not(:disabled) { transform: translateY(-1px); }
+button:hover:not(:disabled) { transform: none; }
 button:disabled,
 .upgrade-card:disabled {
   cursor: not-allowed;
@@ -543,8 +557,8 @@ button:disabled,
 }
 
 @keyframes pulseTile {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(47, 128, 237, 0.13), 0 20px 44px rgba(47, 128, 237, 0.18); }
-  50% { box-shadow: 0 0 0 8px rgba(47, 128, 237, 0.20), 0 24px 54px rgba(47, 128, 237, 0.24); }
+  0%, 100% { box-shadow: 0 12px 32px rgba(47, 128, 237, 0.18); }
+  50% { box-shadow: 0 18px 42px rgba(47, 128, 237, 0.28); }
 }
 
 @media (max-width: 1120px) {
