@@ -9,13 +9,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="lab-not-started">
   <div class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <p class="eyebrow">Modern Chemistry Lab</p>
         <h1>Atomic Idle</h1>
-        <p class="subtitle">Generate Particles, discover elements, and publish Research to make each experiment faster.</p>
+        <p class="subtitle">Start with Hydrogen. Click the first element on the periodic table to bring the lab online.</p>
       </div>
 
       <section class="stats-grid" aria-label="Lab statistics">
@@ -39,7 +38,19 @@
     </header>
 
     <main class="main-grid">
-      <section class="panel chamber-panel">
+      <section class="panel table-panel">
+        <div class="section-heading row-heading">
+          <div>
+            <p class="eyebrow">Periodic Table</p>
+            <h2>Element Board</h2>
+            <p id="table-intro" class="table-intro">Click <strong>Hydrogen</strong> to initialize the Reaction Chamber.</p>
+          </div>
+          <button id="save-button" class="ghost-button" type="button">Save</button>
+        </div>
+        <div id="periodic-table" class="periodic-table" aria-label="Periodic table element board"></div>
+      </section>
+
+      <section class="panel chamber-panel collapsed-panel">
         <div class="section-heading">
           <p class="eyebrow">Reaction Chamber</p>
           <h2>Generate Particles</h2>
@@ -63,18 +74,7 @@
         </div>
       </section>
 
-      <section class="panel table-panel">
-        <div class="section-heading row-heading">
-          <div>
-            <p class="eyebrow">Periodic Table</p>
-            <h2>Element Board</h2>
-          </div>
-          <button id="save-button" class="ghost-button" type="button">Save</button>
-        </div>
-        <div id="periodic-table" class="periodic-table" aria-label="Periodic table element board"></div>
-      </section>
-
-      <aside class="panel detail-panel">
+      <aside class="panel detail-panel collapsed-panel">
         <div class="section-heading">
           <p class="eyebrow">Selected Element</p>
           <h2 id="selected-name">Hydrogen</h2>
@@ -82,7 +82,7 @@
         <div id="element-details" class="details-stack"></div>
       </aside>
 
-      <aside class="panel upgrades-panel">
+      <aside class="panel upgrades-panel collapsed-panel">
         <div class="section-heading">
           <p class="eyebrow">Lab Development</p>
           <h2>Available Upgrades</h2>
@@ -91,7 +91,7 @@
       </aside>
     </main>
 
-    <section class="panel prestige-panel">
+    <section class="panel prestige-panel collapsed-panel">
       <div>
         <p class="eyebrow">Publish Research</p>
         <h2>Prestige System</h2>
@@ -100,7 +100,7 @@
       <button id="prestige-button" class="primary-button" type="button" disabled>Unlock Neon First</button>
     </section>
 
-    <footer class="footer-actions">
+    <footer class="footer-actions collapsed-panel">
       <button id="export-button" class="ghost-button" type="button">Export Save</button>
       <button id="import-button" class="ghost-button" type="button">Import Save</button>
       <button id="reset-button" class="danger-button" type="button">Reset Save</button>
