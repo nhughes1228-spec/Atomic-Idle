@@ -1,6 +1,5 @@
 const SAVE_KEY = "atomic-idle-save-v1";
 const SAVE_INTERVAL_MS = 8000;
-const TICK_MS = 100;
 const OFFLINE_CAP_SECONDS = 60 * 60 * 4;
 
 const elements = [
@@ -17,103 +16,21 @@ const elements = [
 ];
 
 const upgrades = [
-  {
-    id: "focused_chamber",
-    name: "Focused Chamber",
-    description: "Doubles Particle gain from tapping the Reaction Chamber.",
-    cost: 90,
-    requires: () => true,
-    effect: state => { state.multipliers.click *= 2; }
-  },
-  {
-    id: "hydrogen_containment",
-    name: "Hydrogen Containment",
-    description: "Hydrogen production x2. The first element stays relevant longer.",
-    cost: 260,
-    requires: state => getElementState(state, "H").level >= 8,
-    effect: state => { state.elementMultipliers.H *= 2; }
-  },
-  {
-    id: "magnetic_lens",
-    name: "Magnetic Lens",
-    description: "Clicks gain +10% of total passive production.",
-    cost: 850,
-    requires: state => isUnlocked(state, "He"),
-    effect: state => { state.bonuses.clickFromPassive += 0.10; }
-  },
-  {
-    id: "helium_cooling",
-    name: "Helium Cooling Loop",
-    description: "All passive Particle production +25% and offline cap +1 hour.",
-    cost: 2400,
-    requires: state => getElementState(state, "He").level >= 5,
-    effect: state => {
-      state.multipliers.global *= 1.25;
-      state.bonuses.offlineCapHours += 1;
-    }
-  },
-  {
-    id: "lab_assistant",
-    name: "Lab Assistant",
-    description: "Adds a steady +1 virtual click per second.",
-    cost: 9500,
-    requires: state => isUnlocked(state, "Li"),
-    effect: state => { state.bonuses.autoClicksPerSecond += 1; }
-  },
-  {
-    id: "beryllium_frame",
-    name: "Beryllium Frame",
-    description: "Element level costs are reduced by 8%.",
-    cost: 65000,
-    requires: state => isUnlocked(state, "Be"),
-    effect: state => { state.bonuses.costReduction += 0.08; }
-  },
-  {
-    id: "boron_efficiency",
-    name: "Boron Efficiency Matrix",
-    description: "All unlocked elements produce 40% more Particles.",
-    cost: 380000,
-    requires: state => getElementState(state, "B").level >= 3,
-    effect: state => { state.multipliers.global *= 1.4; }
-  },
-  {
-    id: "carbon_lattice",
-    name: "Carbon Lattice",
-    description: "Every discovered element adds +4% global production.",
-    cost: 2400000,
-    requires: state => isUnlocked(state, "C"),
-    effect: state => { state.bonuses.perElementGlobal += 0.04; }
-  },
-  {
-    id: "nitrogen_modeling",
-    name: "Nitrogen Modeling",
-    description: "Future Research gains are increased by 25%.",
-    cost: 16500000,
-    requires: state => isUnlocked(state, "N"),
-    effect: state => { state.bonuses.researchGain *= 1.25; }
-  },
-  {
-    id: "oxygen_reaction_web",
-    name: "Oxygen Reaction Web",
-    description: "Unlocks a simulated water-cycle bonus: all production x1.75.",
-    cost: 110000000,
-    requires: state => isUnlocked(state, "O") && isUnlocked(state, "H"),
-    effect: state => { state.multipliers.global *= 1.75; }
-  },
-  {
-    id: "fluorine_catalyst",
-    name: "Fluorine Catalyst",
-    description: "Click power and passive production both increase by 65%.",
-    cost: 720000000,
-    requires: state => isUnlocked(state, "F"),
-    effect: state => {
-      state.multipliers.global *= 1.65;
-      state.multipliers.click *= 1.65;
-    }
-  }
+  { id: "focused_chamber", name: "Focused Chamber", description: "Doubles Particle gain from tapping the Reaction Chamber.", cost: 90, requires: () => true, effect: state => { state.multipliers.click *= 2; } },
+  { id: "hydrogen_containment", name: "Hydrogen Containment", description: "Hydrogen production x2. The first element stays relevant longer.", cost: 260, requires: state => getElementState(state, "H").level >= 8, effect: state => { state.elementMultipliers.H *= 2; } },
+  { id: "magnetic_lens", name: "Magnetic Lens", description: "Clicks gain +10% of total passive production.", cost: 850, requires: state => isUnlocked(state, "He"), effect: state => { state.bonuses.clickFromPassive += 0.10; } },
+  { id: "helium_cooling", name: "Helium Cooling Loop", description: "All passive Particle production +25% and offline cap +1 hour.", cost: 2400, requires: state => getElementState(state, "He").level >= 5, effect: state => { state.multipliers.global *= 1.25; state.bonuses.offlineCapHours += 1; } },
+  { id: "lab_assistant", name: "Lab Assistant", description: "Adds a steady +1 virtual click per second.", cost: 9500, requires: state => isUnlocked(state, "Li"), effect: state => { state.bonuses.autoClicksPerSecond += 1; } },
+  { id: "beryllium_frame", name: "Beryllium Frame", description: "Element level costs are reduced by 8%.", cost: 65000, requires: state => isUnlocked(state, "Be"), effect: state => { state.bonuses.costReduction += 0.08; } },
+  { id: "boron_efficiency", name: "Boron Efficiency Matrix", description: "All unlocked elements produce 40% more Particles.", cost: 380000, requires: state => getElementState(state, "B").level >= 3, effect: state => { state.multipliers.global *= 1.4; } },
+  { id: "carbon_lattice", name: "Carbon Lattice", description: "Every discovered element adds +4% global production.", cost: 2400000, requires: state => isUnlocked(state, "C"), effect: state => { state.bonuses.perElementGlobal += 0.04; } },
+  { id: "nitrogen_modeling", name: "Nitrogen Modeling", description: "Future Research gains are increased by 25%.", cost: 16500000, requires: state => isUnlocked(state, "N"), effect: state => { state.bonuses.researchGain *= 1.25; } },
+  { id: "oxygen_reaction_web", name: "Oxygen Reaction Web", description: "Unlocks a simulated water-cycle bonus: all production x1.75.", cost: 110000000, requires: state => isUnlocked(state, "O") && isUnlocked(state, "H"), effect: state => { state.multipliers.global *= 1.75; } },
+  { id: "fluorine_catalyst", name: "Fluorine Catalyst", description: "Click power and passive production both increase by 65%.", cost: 720000000, requires: state => isUnlocked(state, "F"), effect: state => { state.multipliers.global *= 1.65; state.multipliers.click *= 1.65; } }
 ];
 
 const defaultState = () => ({
+  hasStarted: false,
   particles: 0,
   lifetimeParticles: 0,
   research: 0,
@@ -121,24 +38,11 @@ const defaultState = () => ({
   lastSaved: Date.now(),
   discoveredHighest: 1,
   publishedCount: 0,
-  elements: Object.fromEntries(elements.map(element => [element.symbol, {
-    unlocked: element.symbol === "H",
-    level: element.symbol === "H" ? 1 : 0
-  }])),
+  elements: Object.fromEntries(elements.map(element => [element.symbol, { unlocked: element.symbol === "H", level: element.symbol === "H" ? 1 : 0 }])),
   purchasedUpgrades: [],
-  multipliers: {
-    click: 1,
-    global: 1
-  },
+  multipliers: { click: 1, global: 1 },
   elementMultipliers: Object.fromEntries(elements.map(element => [element.symbol, 1])),
-  bonuses: {
-    autoClicksPerSecond: 0,
-    clickFromPassive: 0,
-    costReduction: 0,
-    offlineCapHours: 0,
-    perElementGlobal: 0,
-    researchGain: 1
-  }
+  bonuses: { autoClicksPerSecond: 0, clickFromPassive: 0, costReduction: 0, offlineCapHours: 0, perElementGlobal: 0, researchGain: 1 }
 });
 
 let state = loadGame();
@@ -197,15 +101,12 @@ function deepMerge(base, saved) {
 
 function normalizeState(current) {
   for (const element of elements) {
-    if (!current.elements[element.symbol]) {
-      current.elements[element.symbol] = { unlocked: false, level: 0 };
-    }
-    if (!current.elementMultipliers[element.symbol]) {
-      current.elementMultipliers[element.symbol] = 1;
-    }
+    if (!current.elements[element.symbol]) current.elements[element.symbol] = { unlocked: false, level: 0 };
+    if (!current.elementMultipliers[element.symbol]) current.elementMultipliers[element.symbol] = 1;
   }
   current.purchasedUpgrades = Array.isArray(current.purchasedUpgrades) ? current.purchasedUpgrades : [];
   current.selectedSymbol = current.elements[current.selectedSymbol]?.unlocked ? current.selectedSymbol : "H";
+  if (typeof current.hasStarted !== "boolean") current.hasStarted = Boolean(current.lifetimeParticles || current.particles || current.purchasedUpgrades.length || current.discoveredHighest > 1);
 }
 
 function rebuildDerivedEffects(current) {
@@ -219,7 +120,6 @@ function rebuildDerivedEffects(current) {
     perElementGlobal: 0,
     researchGain: 1 + current.research * 0.015
   };
-
   for (const upgradeId of current.purchasedUpgrades) {
     const upgrade = upgrades.find(item => item.id === upgradeId);
     if (upgrade) upgrade.effect(current);
@@ -230,7 +130,7 @@ function applyOfflineProgress(current) {
   const elapsedSeconds = Math.max(0, (Date.now() - (current.lastSaved || Date.now())) / 1000);
   const cap = OFFLINE_CAP_SECONDS + (current.bonuses?.offlineCapHours || 0) * 3600;
   const effectiveSeconds = Math.min(elapsedSeconds, cap);
-  if (effectiveSeconds < 30) return;
+  if (!current.hasStarted || effectiveSeconds < 30) return;
   rebuildDerivedEffects(current);
   const offlineGain = getParticlesPerSecond(current) * effectiveSeconds * 0.65;
   if (offlineGain > 1) {
@@ -246,32 +146,21 @@ function saveGame(showMessage = false) {
   if (showMessage) showToast("Experiment saved.");
 }
 
-function getElementState(current, symbol) {
-  return current.elements[symbol];
-}
-
-function isUnlocked(current, symbol) {
-  return Boolean(getElementState(current, symbol)?.unlocked);
-}
-
-function getUnlockedElements(current = state) {
-  return elements.filter(element => isUnlocked(current, element.symbol));
-}
-
-function getGlobalMultiplier(current = state) {
-  const unlockedCount = getUnlockedElements(current).length;
-  return current.multipliers.global * (1 + unlockedCount * current.bonuses.perElementGlobal);
-}
+function getElementState(current, symbol) { return current.elements[symbol]; }
+function isUnlocked(current, symbol) { return Boolean(getElementState(current, symbol)?.unlocked); }
+function getUnlockedElements(current = state) { return elements.filter(element => isUnlocked(current, element.symbol)); }
+function getGlobalMultiplier(current = state) { return current.multipliers.global * (1 + getUnlockedElements(current).length * current.bonuses.perElementGlobal); }
 
 function getElementProduction(element, current = state) {
   const elementState = getElementState(current, element.symbol);
-  if (!elementState?.unlocked) return 0;
+  if (!current.hasStarted || !elementState?.unlocked) return 0;
   const levelBonus = Math.pow(1.035, Math.max(0, elementState.level - 1));
   const milestoneBonus = Math.pow(1.8, Math.floor(elementState.level / 25));
   return element.baseProduction * elementState.level * levelBonus * milestoneBonus * current.elementMultipliers[element.symbol] * getGlobalMultiplier(current);
 }
 
 function getParticlesPerSecond(current = state) {
+  if (!current.hasStarted) return 0;
   const elementProduction = elements.reduce((sum, element) => sum + getElementProduction(element, current), 0);
   const autoClickProduction = getClickPower(current) * current.bonuses.autoClicksPerSecond;
   return elementProduction + autoClickProduction;
@@ -284,6 +173,7 @@ function getClickPower(current = state) {
 }
 
 function getParticlesPerSecondWithoutClickShare(current = state) {
+  if (!current.hasStarted) return 0;
   return elements.reduce((sum, element) => sum + getElementProduction(element, current), 0);
 }
 
@@ -291,9 +181,7 @@ function getLevelCost(element, quantity = 1, current = state) {
   const elementState = getElementState(current, element.symbol);
   let total = 0;
   const reduction = Math.min(0.65, current.bonuses.costReduction);
-  for (let i = 0; i < quantity; i += 1) {
-    total += element.baseCost * Math.pow(1.18, elementState.level + i) * (1 - reduction);
-  }
+  for (let i = 0; i < quantity; i += 1) total += element.baseCost * Math.pow(1.18, elementState.level + i) * (1 - reduction);
   return total;
 }
 
@@ -309,21 +197,20 @@ function getBuyMaxQuantity(element) {
   return { quantity, cost: total };
 }
 
-function getNextElement() {
-  return elements.find(element => !isUnlocked(state, element.symbol));
-}
+function getNextElement() { return elements.find(element => !isUnlocked(state, element.symbol)); }
+function getUnlockCost(element) { return element.unlockCost * (1 - Math.min(0.55, state.research * 0.012)); }
+function addParticles(amount) { state.particles += amount; state.lifetimeParticles += amount; }
 
-function getUnlockCost(element) {
-  const researchDiscount = Math.min(0.55, state.research * 0.012);
-  return element.unlockCost * (1 - researchDiscount);
-}
-
-function addParticles(amount) {
-  state.particles += amount;
-  state.lifetimeParticles += amount;
+function activateLabFromHydrogen() {
+  state.hasStarted = true;
+  state.selectedSymbol = "H";
+  showToast("Hydrogen selected. Reaction Chamber online.");
+  render();
+  saveGame();
 }
 
 function clickChamber(event) {
+  if (!state.hasStarted) return showToast("Select Hydrogen on the periodic table first.");
   const gain = getClickPower();
   addParticles(gain);
   spawnFloatText(`+${formatNumber(gain)}`, event?.clientX, event?.clientY);
@@ -334,10 +221,9 @@ function unlockElement(symbol) {
   const element = elements.find(item => item.symbol === symbol);
   if (!element) return;
   const elementState = getElementState(state, symbol);
-  if (elementState.unlocked) {
-    selectElement(symbol);
-    return;
-  }
+  if (!state.hasStarted && symbol === "H") return activateLabFromHydrogen();
+  if (!state.hasStarted) return showToast("Begin with Hydrogen first.");
+  if (elementState.unlocked) { selectElement(symbol); return; }
   const next = getNextElement();
   if (next?.symbol !== symbol) return showToast(`${element.name} is not the current discovery frontier yet.`);
   const cost = getUnlockCost(element);
@@ -354,13 +240,15 @@ function unlockElement(symbol) {
 
 function selectElement(symbol) {
   if (!state.elements[symbol]) return;
+  if (!state.hasStarted && symbol === "H") return activateLabFromHydrogen();
+  if (!state.hasStarted) return showToast("Begin with Hydrogen first.");
   state.selectedSymbol = symbol;
   render();
 }
 
 function buyLevels(symbol, quantity) {
   const element = elements.find(item => item.symbol === symbol);
-  if (!element || !isUnlocked(state, symbol)) return;
+  if (!element || !isUnlocked(state, symbol) || !state.hasStarted) return;
   let amount = quantity;
   let cost = getLevelCost(element, amount);
   if (quantity === "max") {
@@ -377,7 +265,7 @@ function buyLevels(symbol, quantity) {
 
 function buyUpgrade(upgradeId) {
   const upgrade = upgrades.find(item => item.id === upgradeId);
-  if (!upgrade || state.purchasedUpgrades.includes(upgradeId)) return;
+  if (!upgrade || state.purchasedUpgrades.includes(upgradeId) || !state.hasStarted) return;
   if (!upgrade.requires(state)) return showToast("This upgrade is not ready yet.");
   if (state.particles < upgrade.cost) return showToast(`Need ${formatNumber(upgrade.cost)} Particles.`);
   state.particles -= upgrade.cost;
@@ -397,7 +285,7 @@ function publishResearch() {
   state.research = oldResearch + gain;
   state.publishedCount += 1;
   rebuildDerivedEffects(state);
-  showToast(`Published findings: +${formatNumber(gain)} Research.`);
+  showToast(`Published findings: +${formatNumber(gain)} Research. Select Hydrogen to begin the next experiment.`);
   render();
   saveGame();
 }
@@ -410,6 +298,7 @@ function calculateResearchGain() {
 }
 
 function render() {
+  document.body.classList.toggle("lab-not-started", !state.hasStarted);
   const pps = getParticlesPerSecond();
   const clickPower = getClickPower();
   dom.particlesDisplay.textContent = formatNumber(state.particles);
@@ -425,13 +314,15 @@ function render() {
 }
 
 function renderObjective() {
+  if (!state.hasStarted) {
+    dom.objectiveDisplay.textContent = "Select Hydrogen on the periodic table to initialize the lab.";
+    return;
+  }
   const next = getNextElement();
   if (next) {
     const cost = getUnlockCost(next);
     const remaining = Math.max(0, cost - state.particles);
-    dom.objectiveDisplay.textContent = remaining > 0
-      ? `Accumulate ${formatNumber(cost)} Particles to discover ${next.name}. ${formatNumber(remaining)} remaining.`
-      : `${next.name} is ready to discover.`;
+    dom.objectiveDisplay.textContent = remaining > 0 ? `Accumulate ${formatNumber(cost)} Particles to discover ${next.name}. ${formatNumber(remaining)} remaining.` : `${next.name} is ready to discover.`;
   } else {
     dom.objectiveDisplay.textContent = "First ten elements discovered. Publish Research or keep building levels.";
   }
@@ -448,17 +339,16 @@ function renderTable() {
     tile.style.gridColumn = element.col;
     tile.style.gridRow = element.row;
     if (!elementState.unlocked) tile.classList.add("locked");
-    if (next?.symbol === element.symbol) tile.classList.add("frontier");
-    if (next?.symbol === element.symbol && state.particles >= getUnlockCost(element)) tile.classList.add("affordable");
-    if (state.selectedSymbol === element.symbol) tile.classList.add("selected");
-
+    if (!state.hasStarted && element.symbol === "H") tile.classList.add("initial-element");
+    if (state.hasStarted && next?.symbol === element.symbol) tile.classList.add("frontier");
+    if (state.hasStarted && next?.symbol === element.symbol && state.particles >= getUnlockCost(element)) tile.classList.add("affordable");
+    if (state.hasStarted && state.selectedSymbol === element.symbol) tile.classList.add("selected");
     tile.innerHTML = `
       <span class="element-number">${element.atomicNumber}</span>
       <span class="element-symbol">${element.symbol}</span>
-      <span class="element-name">${elementState.unlocked ? element.name : next?.symbol === element.symbol ? formatNumber(getUnlockCost(element)) : "Locked"}</span>
-      <span class="element-level">${elementState.unlocked ? `Lv. ${elementState.level}` : next?.symbol === element.symbol ? "Frontier" : ""}</span>
+      <span class="element-name">${elementState.unlocked ? element.name : state.hasStarted && next?.symbol === element.symbol ? formatNumber(getUnlockCost(element)) : "Locked"}</span>
+      <span class="element-level">${elementState.unlocked && state.hasStarted ? `Lv. ${elementState.level}` : state.hasStarted && next?.symbol === element.symbol ? "Frontier" : ""}</span>
     `;
-
     tile.addEventListener("click", () => {
       if (elementState.unlocked) selectElement(element.symbol);
       else unlockElement(element.symbol);
@@ -471,12 +361,14 @@ function renderDetails() {
   const element = elements.find(item => item.symbol === state.selectedSymbol) || elements[0];
   const elementState = getElementState(state, element.symbol);
   dom.selectedName.textContent = element.name;
-
+  if (!state.hasStarted) {
+    dom.elementDetails.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>Lab inactive.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Click Hydrogen on the periodic table to open the Reaction Chamber and element controls.</p></div>`;
+    return;
+  }
   if (!elementState.unlocked) {
     dom.elementDetails.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>${element.name} is locked.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Reach it as the next discovery frontier to activate this element.</p></div>`;
     return;
   }
-
   const cost1 = getLevelCost(element, 1);
   const cost10 = getLevelCost(element, 10);
   const max = getBuyMaxQuantity(element);
@@ -492,7 +384,6 @@ function renderDetails() {
       <button class="buy-button" data-buy="max">Buy Max<br><small>${max.quantity ? `${max.quantity} levels` : "—"}</small></button>
     </div>
   `;
-
   dom.elementDetails.querySelectorAll("[data-buy]").forEach(button => {
     const value = button.dataset.buy;
     button.addEventListener("click", () => buyLevels(element.symbol, value === "max" ? "max" : Number(value)));
@@ -500,23 +391,22 @@ function renderDetails() {
 }
 
 function renderUpgrades() {
+  if (!state.hasStarted) {
+    dom.upgradesList.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>Upgrades locked.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Select Hydrogen to bring the lab systems online.</p></div>`;
+    return;
+  }
   const visible = upgrades.filter(upgrade => !state.purchasedUpgrades.includes(upgrade.id) && upgrade.requires(state));
   if (!visible.length) {
     dom.upgradesList.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>No new upgrades ready.</strong><p style="margin:8px 0 0;color:var(--muted);font-weight:650;">Level elements or discover the next frontier to reveal more lab development.</p></div>`;
     return;
   }
-
   dom.upgradesList.innerHTML = "";
   for (const upgrade of visible) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "upgrade-card";
     button.disabled = state.particles < upgrade.cost;
-    button.innerHTML = `
-      <div class="upgrade-meta"><span>Upgrade</span><span>${formatNumber(upgrade.cost)}</span></div>
-      <h3>${upgrade.name}</h3>
-      <p>${upgrade.description}</p>
-    `;
+    button.innerHTML = `<div class="upgrade-meta"><span>Upgrade</span><span>${formatNumber(upgrade.cost)}</span></div><h3>${upgrade.name}</h3><p>${upgrade.description}</p>`;
     button.addEventListener("click", () => buyUpgrade(upgrade.id));
     dom.upgradesList.appendChild(button);
   }
@@ -538,8 +428,10 @@ function renderPrestige() {
 function gameLoop(now) {
   const delta = Math.min(1, (now - lastTick) / 1000);
   lastTick = now;
-  const gain = getParticlesPerSecond() * delta;
-  if (gain > 0) addParticles(gain);
+  if (state.hasStarted) {
+    const gain = getParticlesPerSecond() * delta;
+    if (gain > 0) addParticles(gain);
+  }
   render();
   requestAnimationFrame(gameLoop);
 }
@@ -550,10 +442,7 @@ function formatNumber(value) {
   const units = ["", "K", "M", "B", "T", "Qa", "Qi"];
   let unit = 0;
   let display = value;
-  while (display >= 1000 && unit < units.length - 1) {
-    display /= 1000;
-    unit += 1;
-  }
+  while (display >= 1000 && unit < units.length - 1) { display /= 1000; unit += 1; }
   return `${display.toFixed(display < 10 ? 2 : display < 100 ? 1 : 0)}${units[unit]}`;
 }
 
