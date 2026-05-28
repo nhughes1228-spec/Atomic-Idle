@@ -108,7 +108,7 @@ function normalizeState(current) {
     if (!current.elementMultipliers[element.symbol]) current.elementMultipliers[element.symbol] = 1;
   }
   current.purchasedUpgrades = Array.isArray(current.purchasedUpgrades) ? current.purchasedUpgrades : [];
-  current.selectedSymbol = current.elements[current.selectedSymbol]?.unlocked ? current.selectedSymbol : "H";
+  current.selectedSymbol = current.elements[current.selectedSymbol]?.unlocked ? current.selectedSymbol : getNewestUnlockedElement(current).symbol;
   if (typeof current.hasStarted !== "boolean") current.hasStarted = Boolean(current.lifetimeParticles || current.particles || current.purchasedUpgrades.length || current.discoveredHighest > 1);
 }
 
@@ -152,8 +152,10 @@ function saveGame(showMessage = false) {
 function getElementState(current, symbol) { return current.elements[symbol]; }
 function isUnlocked(current, symbol) { return Boolean(getElementState(current, symbol)?.unlocked); }
 function getUnlockedElements(current = state) { return elements.filter(element => isUnlocked(current, element.symbol)); }
+function getNewestUnlockedElement(current = state) { return getUnlockedElements(current).at(-1) || elements[0]; }
 function getGlobalMultiplier(current = state) { return current.multipliers.global * (1 + getUnlockedElements(current).length * current.bonuses.perElementGlobal); }
-function getActiveElement() { return elements.find(element => element.symbol === state.selectedSymbol) || elements[0]; }
+function getActiveElement() { return elements.find(element => element.symbol === state.selectedSymbol) || getNewestUnlockedElement(); }
+function getElementTapWeight(element) { return Math.pow(element.baseProduction / elements[0].baseProduction, 0.5); }
 
 function getElementProduction(element, current = state) {
   const elementState = getElementState(current, element.symbol);
@@ -171,10 +173,12 @@ function getParticlesPerSecond(current = state) {
 }
 
 function getClickPower(current = state) {
-  const activeLevel = getElementState(current, current.selectedSymbol)?.level || 1;
+  const activeElement = elements.find(element => element.symbol === current.selectedSymbol) || getNewestUnlockedElement(current);
+  const activeLevel = getElementState(current, activeElement.symbol)?.level || 1;
   const hydrogenLevel = getElementState(current, "H")?.level || 1;
-  const base = 1 + Math.floor(hydrogenLevel / 6) + Math.floor(activeLevel / 12);
-  return (base * current.multipliers.click) + (getParticlesPerSecondWithoutClickShare(current) * current.bonuses.clickFromPassive);
+  const levelContribution = 1 + Math.floor(hydrogenLevel / 8) + Math.floor(activeLevel / 10);
+  const elementTapWeight = getElementTapWeight(activeElement);
+  return (levelContribution * elementTapWeight * current.multipliers.click) + (getParticlesPerSecondWithoutClickShare(current) * current.bonuses.clickFromPassive);
 }
 
 function getParticlesPerSecondWithoutClickShare(current = state) {
@@ -259,7 +263,7 @@ function unlockElement(symbol, event) {
   elementState.level = 1;
   state.discoveredHighest = Math.max(state.discoveredHighest, element.atomicNumber);
   state.selectedSymbol = symbol;
-  showToast(`Element discovered: ${element.name}. It is now your active click target.`);
+  showToast(`${element.name} discovered. It is now your strongest tap target.`);
   renderFull();
   saveGame();
 }
@@ -342,13 +346,16 @@ function updateObjective() {
     dom.objectiveDisplay.textContent = "Click Hydrogen on the periodic table to begin generating Particles.";
     return;
   }
+  const activeElement = getActiveElement();
   const next = getNextElement();
   if (next) {
     const cost = getUnlockCost(next);
     const remaining = Math.max(0, cost - state.particles);
-    dom.objectiveDisplay.textContent = remaining > 0 ? `Accumulate ${formatNumber(cost)} Particles to discover ${next.name}. ${formatNumber(remaining)} remaining.` : `${next.name} is ready to discover.`;
+    dom.objectiveDisplay.textContent = remaining > 0
+      ? `Tap ${activeElement.name} for ${formatNumber(getClickPower())} Particles/click. Next: ${next.name} at ${formatNumber(cost)}. ${formatNumber(remaining)} remaining.`
+      : `${next.name} is ready to discover.`;
   } else {
-    dom.objectiveDisplay.textContent = "First ten elements discovered. Publish Research or keep building levels.";
+    dom.objectiveDisplay.textContent = `Tap ${activeElement.name} for ${formatNumber(getClickPower())} Particles/click, or publish Research.`;
   }
 }
 
@@ -384,14 +391,15 @@ function updateTableState() {
     const refs = tileRefs.get(element.symbol);
     if (!refs) continue;
     const elementState = getElementState(state, element.symbol);
+    const isActive = state.hasStarted && element.symbol === state.selectedSymbol;
     refs.tile.classList.toggle("locked", !elementState.unlocked);
     refs.tile.classList.toggle("initial-element", !state.hasStarted && element.symbol === "H");
-    refs.tile.classList.toggle("active-click-target", state.hasStarted && element.symbol === state.selectedSymbol);
+    refs.tile.classList.toggle("active-click-target", isActive);
     refs.tile.classList.toggle("frontier", state.hasStarted && next?.symbol === element.symbol);
     refs.tile.classList.toggle("affordable", state.hasStarted && next?.symbol === element.symbol && state.particles >= getUnlockCost(element));
-    refs.tile.classList.toggle("selected", state.hasStarted && state.selectedSymbol === element.symbol);
+    refs.tile.classList.toggle("selected", isActive);
     refs.name.textContent = elementState.unlocked ? element.name : state.hasStarted && next?.symbol === element.symbol ? formatNumber(getUnlockCost(element)) : "Locked";
-    refs.level.textContent = elementState.unlocked && state.hasStarted ? `Lv. ${elementState.level}` : state.hasStarted && next?.symbol === element.symbol ? "Frontier" : "";
+    refs.level.textContent = elementState.unlocked && state.hasStarted ? `${isActive ? "Tap" : "Lv."} ${isActive ? formatNumber(getClickPower()) : elementState.level}` : state.hasStarted && next?.symbol === element.symbol ? "Frontier" : "";
   }
 }
 
@@ -407,9 +415,9 @@ function renderDetails() {
   const cost10 = getLevelCost(element, 10);
   const max = getBuyMaxQuantity(element);
   dom.elementDetails.innerHTML = `
-    <div class="detail-row"><span>Active Click Target</span><strong>${element.symbol}</strong></div>
-    <div class="detail-row"><span>Atomic #</span><strong>${element.atomicNumber}</strong></div>
-    <div class="detail-row"><span>Role</span><strong>${element.role}</strong></div>
+    <div class="detail-row"><span>Active Tap Target</span><strong>${element.symbol}</strong></div>
+    <div class="detail-row"><span>Tap Power</span><strong>${formatNumber(getClickPower())}</strong></div>
+    <div class="detail-row"><span>Element Tap Weight</span><strong>${formatNumber(getElementTapWeight(element))}x</strong></div>
     <div class="detail-row"><span>Level</span><strong>${elementState.level}</strong></div>
     <div class="detail-row"><span>Production</span><strong>${formatNumber(getElementProduction(element))}/sec</strong></div>
     <div class="buy-row">
