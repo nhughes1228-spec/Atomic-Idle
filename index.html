@@ -38,29 +38,16 @@
 
     <main class="main-grid">
       <section class="panel table-panel">
-        <div class="section-heading row-heading">
+        <div class="section-heading row-heading table-heading">
           <div>
             <p class="eyebrow">Periodic Table</p>
             <h2>Element Board</h2>
             <p id="table-intro" class="table-intro">Click <strong>Hydrogen</strong> to begin generating Particles.</p>
+            <p class="table-status" id="objective-display">Click Hydrogen to begin.</p>
           </div>
           <button id="save-button" class="ghost-button" type="button">Save</button>
         </div>
         <div id="periodic-table" class="periodic-table" aria-label="Periodic table element board"></div>
-      </section>
-
-      <section class="panel status-panel collapsed-panel">
-        <div class="section-heading">
-          <p class="eyebrow">Active Element</p>
-          <h2>Particle Generation</h2>
-        </div>
-        <p class="status-help">
-          Click the highlighted element tile to create <strong id="click-help-display">1</strong> Particles.
-        </p>
-        <div class="objective-box">
-          <span>Current Objective</span>
-          <strong id="objective-display">Click Hydrogen to begin.</strong>
-        </div>
       </section>
 
       <aside class="panel detail-panel collapsed-panel">
@@ -96,6 +83,7 @@
     </footer>
   </div>
 
+  <span id="click-help-display" hidden>1</span>
   <div id="float-layer" class="float-layer" aria-hidden="true"></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
