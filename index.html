@@ -8,6 +8,63 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .periodic-table { min-height: 348px; }
+    body.lab-not-started .periodic-table { min-height: 348px; }
+    .research-effects-panel {
+      margin-top: 18px;
+    }
+    .research-effects-panel .section-heading {
+      margin-bottom: 12px;
+    }
+    .research-effects-copy {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .research-effects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 10px;
+    }
+    .research-effect-card {
+      display: grid;
+      gap: 4px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(248, 251, 253, 0.74);
+      padding: 12px 13px;
+    }
+    .research-effect-card span {
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 850;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+    }
+    .research-effect-card strong {
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: -0.035em;
+    }
+    .category-transition-metal {
+      --active-bg: linear-gradient(145deg, #ffffff, #d8e5f4 42%, #8aa9cd);
+      --active-border: rgba(62, 91, 130, 0.98);
+      --active-shadow: rgba(62, 91, 130, 0.36);
+      --active-glow: rgba(93, 130, 176, 0.30);
+      --active-plinth: rgba(47, 72, 106, 0.88);
+      background: linear-gradient(145deg, #ffffff, #edf4fb);
+    }
+    .category-post-transition-metal {
+      --active-bg: linear-gradient(145deg, #ffffff, #d9f0ee 42%, #8cc7c1);
+      --active-border: rgba(44, 126, 119, 0.98);
+      --active-shadow: rgba(44, 126, 119, 0.34);
+      --active-glow: rgba(82, 181, 171, 0.30);
+      --active-plinth: rgba(30, 101, 96, 0.88);
+      background: linear-gradient(145deg, #ffffff, #eef9f8);
+    }
+  </style>
 </head>
 <body class="lab-not-started">
   <div class="app-shell">
@@ -62,6 +119,15 @@
       </aside>
     </main>
 
+    <section class="panel research-effects-panel collapsed-panel">
+      <div class="section-heading">
+        <p class="eyebrow">Research Effects</p>
+        <h2>Permanent Lab Knowledge</h2>
+        <p class="research-effects-copy">Research is permanent after publishing. It makes every new run faster by improving production, click strength, discovery costs, level costs, offline time, and future Research gain.</p>
+      </div>
+      <div id="research-effects-grid" class="research-effects-grid"></div>
+    </section>
+
     <section class="panel prestige-panel collapsed-panel">
       <div>
         <p class="eyebrow">Publish Research</p>
@@ -86,6 +152,67 @@
 
   <script src="main.js"></script>
   <script>
+    const extendedElements = [
+      { atomicNumber: 11, symbol: "Na", name: "Sodium", category: "alkali-metal", row: 3, col: 1, unlockCost: 1.15e10, baseCost: 3.07e9, baseProduction: 1.05e5, role: "Alkali metal scaling and post-Neon run extension." },
+      { atomicNumber: 12, symbol: "Mg", name: "Magnesium", category: "alkaline-earth", row: 3, col: 2, unlockCost: 7.4e10, baseCost: 1.97e10, baseProduction: 4.4e5, role: "Stable structural production after Sodium." },
+      { atomicNumber: 13, symbol: "Al", name: "Aluminum", category: "post-transition-metal", row: 3, col: 13, unlockCost: 4.8e11, baseCost: 1.28e11, baseProduction: 1.85e6, role: "Light metal production bridge." },
+      { atomicNumber: 14, symbol: "Si", name: "Silicon", category: "metalloid", row: 3, col: 14, unlockCost: 3.1e12, baseCost: 8.27e11, baseProduction: 7.8e6, role: "Metalloid efficiency and future technology foundation." },
+      { atomicNumber: 15, symbol: "P", name: "Phosphorus", category: "nonmetal", row: 3, col: 15, unlockCost: 2.0e13, baseCost: 5.33e12, baseProduction: 3.3e7, role: "Reactive nonmetal production." },
+      { atomicNumber: 16, symbol: "S", name: "Sulfur", category: "nonmetal", row: 3, col: 16, unlockCost: 1.3e14, baseCost: 3.47e13, baseProduction: 1.4e8, role: "Dense nonmetal output." },
+      { atomicNumber: 17, symbol: "Cl", name: "Chlorine", category: "halogen", row: 3, col: 17, unlockCost: 8.4e14, baseCost: 2.24e14, baseProduction: 5.9e8, role: "Halogen reactivity spike." },
+      { atomicNumber: 18, symbol: "Ar", name: "Argon", category: "noble-gas", row: 3, col: 18, unlockCost: 5.4e15, baseCost: 1.44e15, baseProduction: 2.5e9, role: "Noble gas stability checkpoint." },
+      { atomicNumber: 19, symbol: "K", name: "Potassium", category: "alkali-metal", row: 4, col: 1, unlockCost: 3.5e16, baseCost: 9.33e15, baseProduction: 1.05e10, role: "Period four alkali surge." },
+      { atomicNumber: 20, symbol: "Ca", name: "Calcium", category: "alkaline-earth", row: 4, col: 2, unlockCost: 2.3e17, baseCost: 6.13e16, baseProduction: 4.4e10, role: "Durable alkaline earth scaling." },
+      { atomicNumber: 21, symbol: "Sc", name: "Scandium", category: "transition-metal", row: 4, col: 3, unlockCost: 1.5e18, baseCost: 4.0e17, baseProduction: 1.85e11, role: "First transition-metal frontier." },
+      { atomicNumber: 22, symbol: "Ti", name: "Titanium", category: "transition-metal", row: 4, col: 4, unlockCost: 9.7e18, baseCost: 2.59e18, baseProduction: 7.8e11, role: "Transition-metal production frame." },
+      { atomicNumber: 23, symbol: "V", name: "Vanadium", category: "transition-metal", row: 4, col: 5, unlockCost: 6.3e19, baseCost: 1.68e19, baseProduction: 3.3e12, role: "High-density transition output." },
+      { atomicNumber: 24, symbol: "Cr", name: "Chromium", category: "transition-metal", row: 4, col: 6, unlockCost: 4.1e20, baseCost: 1.09e20, baseProduction: 1.4e13, role: "Polished late-period production." },
+      { atomicNumber: 25, symbol: "Mn", name: "Manganese", category: "transition-metal", row: 4, col: 7, unlockCost: 2.7e21, baseCost: 7.2e20, baseProduction: 5.9e13, role: "Transition-metal compounding." },
+      { atomicNumber: 26, symbol: "Fe", name: "Iron", category: "transition-metal", row: 4, col: 8, unlockCost: 1.8e22, baseCost: 4.8e21, baseProduction: 2.5e14, role: "Heavy lab infrastructure scaling." },
+      { atomicNumber: 27, symbol: "Co", name: "Cobalt", category: "transition-metal", row: 4, col: 9, unlockCost: 1.2e23, baseCost: 3.2e22, baseProduction: 1.05e15, role: "Magnetic production growth." },
+      { atomicNumber: 28, symbol: "Ni", name: "Nickel", category: "transition-metal", row: 4, col: 10, unlockCost: 7.8e23, baseCost: 2.08e23, baseProduction: 4.4e15, role: "Sturdy transition-metal checkpoint." },
+      { atomicNumber: 29, symbol: "Cu", name: "Copper", category: "transition-metal", row: 4, col: 11, unlockCost: 5.0e24, baseCost: 1.33e24, baseProduction: 1.85e16, role: "Conductive late-run production." },
+      { atomicNumber: 30, symbol: "Zn", name: "Zinc", category: "transition-metal", row: 4, col: 12, unlockCost: 3.3e25, baseCost: 8.8e24, baseProduction: 7.8e16, role: "Transition-metal completion point." },
+      { atomicNumber: 31, symbol: "Ga", name: "Gallium", category: "post-transition-metal", row: 4, col: 13, unlockCost: 2.2e26, baseCost: 5.87e25, baseProduction: 3.3e17, role: "Soft metal production bridge." },
+      { atomicNumber: 32, symbol: "Ge", name: "Germanium", category: "metalloid", row: 4, col: 14, unlockCost: 1.4e27, baseCost: 3.73e26, baseProduction: 1.4e18, role: "Metalloid systems scaling." },
+      { atomicNumber: 33, symbol: "As", name: "Arsenic", category: "metalloid", row: 4, col: 15, unlockCost: 9.2e27, baseCost: 2.45e27, baseProduction: 5.9e18, role: "Metalloid reaction modeling." },
+      { atomicNumber: 34, symbol: "Se", name: "Selenium", category: "nonmetal", row: 4, col: 16, unlockCost: 6.0e28, baseCost: 1.6e28, baseProduction: 2.5e19, role: "Nonmetal late-run pressure." },
+      { atomicNumber: 35, symbol: "Br", name: "Bromine", category: "halogen", row: 4, col: 17, unlockCost: 3.9e29, baseCost: 1.04e29, baseProduction: 1.05e20, role: "High-reactivity halogen spike." },
+      { atomicNumber: 36, symbol: "Kr", name: "Krypton", category: "noble-gas", row: 4, col: 18, unlockCost: 2.5e30, baseCost: 6.67e29, baseProduction: 4.4e20, role: "Noble gas endpoint for the expanded table." }
+    ];
+
+    for (const element of extendedElements) {
+      if (!elements.some(existing => existing.symbol === element.symbol)) elements.push(element);
+    }
+
+    function ensureExtendedSaveState(current = state) {
+      for (const element of elements) {
+        if (!current.elements[element.symbol]) current.elements[element.symbol] = { unlocked: false, level: 0 };
+        if (!current.elementMultipliers[element.symbol]) current.elementMultipliers[element.symbol] = 1;
+      }
+      current.discoveredHighest = Math.max(current.discoveredHighest || 1, ...getUnlockedElements(current).map(element => element.atomicNumber));
+    }
+
+    function updateResearchEffects() {
+      const grid = document.getElementById("research-effects-grid");
+      if (!grid) return;
+      const research = state.research || 0;
+      const passive = 1 + research * 0.08;
+      const click = 1 + research * 0.06;
+      const discoveryDiscount = Math.min(55, research * 1.2);
+      const levelDiscount = Math.min(35, research * 0.6);
+      const offlineHours = Math.floor(research / 8);
+      const researchGain = 1 + research * 0.015;
+      grid.innerHTML = `
+        <div class="research-effect-card"><span>Passive Production</span><strong>${formatNumber(passive)}x</strong></div>
+        <div class="research-effect-card"><span>Click Power</span><strong>${formatNumber(click)}x</strong></div>
+        <div class="research-effect-card"><span>Discovery Costs</span><strong>-${formatNumber(discoveryDiscount)}%</strong></div>
+        <div class="research-effect-card"><span>Level Costs</span><strong>-${formatNumber(levelDiscount)}%</strong></div>
+        <div class="research-effect-card"><span>Offline Cap</span><strong>+${offlineHours} hr</strong></div>
+        <div class="research-effect-card"><span>Future Research</span><strong>${formatNumber(researchGain)}x</strong></div>
+      `;
+    }
+
     renderDetails = function renderDetails() {
       const element = getActiveElement();
       const elementState = getElementState(state, element.symbol);
@@ -110,7 +237,17 @@
         button.addEventListener("click", () => buyLevels(element.symbol, value === "max" ? "max" : Number(value)));
       });
     };
+
+    const originalUpdateLiveUI = updateLiveUI;
+    updateLiveUI = function updateLiveUI() {
+      originalUpdateLiveUI();
+      updateResearchEffects();
+    };
+
+    ensureExtendedSaveState(state);
+    rebuildDerivedEffects(state);
     renderFull();
+    updateResearchEffects();
   </script>
 </body>
 </html>
