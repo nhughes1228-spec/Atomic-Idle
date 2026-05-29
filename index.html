@@ -220,6 +220,18 @@
 
   <script src="main.js"></script>
   <script>
+    formatNumber = function formatNumber(value) {
+      if (!Number.isFinite(value)) return "0";
+      const sign = value < 0 ? "-" : "";
+      const absolute = Math.abs(value);
+      if (absolute < 1000) return `${sign}${absolute.toFixed(absolute < 10 ? 1 : 0).replace(/\.0$/, "")}`;
+      const units = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc", "Ud", "Dd", "Td", "Qad", "Qid", "Sxd", "Spd", "Ocd", "Nd"];
+      const unitIndex = Math.floor(Math.log10(absolute) / 3);
+      if (unitIndex >= units.length) return `${sign}${absolute.toExponential(2).replace("e+", "e")}`;
+      const display = absolute / Math.pow(1000, unitIndex);
+      return `${sign}${display.toFixed(display < 10 ? 2 : display < 100 ? 1 : 0)}${units[unitIndex]}`;
+    };
+
     const extendedElements = [
       { atomicNumber: 11, symbol: "Na", name: "Sodium", category: "alkali-metal", row: 3, col: 1, unlockCost: 1.15e10, baseCost: 3.07e9, baseProduction: 1.05e5, role: "Alkali metal scaling and post-Neon run extension." },
       { atomicNumber: 12, symbol: "Mg", name: "Magnesium", category: "alkaline-earth", row: 3, col: 2, unlockCost: 7.4e10, baseCost: 1.97e10, baseProduction: 4.4e5, role: "Stable structural production after Sodium." },
