@@ -47,6 +47,31 @@
     event.preventDefault();
   }
 
+  function setPressed(isPressed) {
+    if (!activeTapButton) return;
+    activeTapButton.classList.toggle("is-pressed", isPressed);
+  }
+
+  function triggerTapFeedback(event) {
+    if (!activeTapButton) return;
+    const rect = activeTapButton.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, (event?.clientX || rect.left + rect.width / 2) - rect.left));
+    const y = Math.max(0, Math.min(rect.height, (event?.clientY || rect.top + rect.height / 2) - rect.top));
+
+    activeTapButton.style.setProperty("--tap-x", `${x}px`);
+    activeTapButton.style.setProperty("--tap-y", `${y}px`);
+    activeTapButton.classList.remove("tap-pop");
+    void activeTapButton.offsetWidth;
+    activeTapButton.classList.add("tap-pop");
+
+    const ripple = document.createElement("span");
+    ripple.className = "tap-ripple";
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    activeTapButton.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 420);
+  }
+
   function renderActiveTapTarget() {
     if (!dom.periodicTable) return;
     activeTapButton = document.createElement("button");
@@ -68,9 +93,20 @@
     activeTapButton.addEventListener("contextmenu", suppressSelectionGesture);
     activeTapButton.addEventListener("dragstart", suppressSelectionGesture);
     activeTapButton.addEventListener("touchstart", event => event.preventDefault(), { passive: false });
-    activeTapButton.addEventListener("pointerdown", event => event.preventDefault());
+    activeTapButton.addEventListener("pointerdown", event => {
+      event.preventDefault();
+      setPressed(true);
+    });
+    activeTapButton.addEventListener("pointerup", event => {
+      event.preventDefault();
+      setPressed(false);
+      triggerTapFeedback(event);
+    });
+    activeTapButton.addEventListener("pointercancel", () => setPressed(false));
+    activeTapButton.addEventListener("pointerleave", () => setPressed(false));
     activeTapButton.addEventListener("click", event => {
       event.preventDefault();
+      triggerTapFeedback(event);
       if (!state.hasStarted) return activateLabFromHydrogen(event);
       return clickActiveElement(event);
     });
