@@ -1,0 +1,122 @@
+.element-tile.active-click-target,
+body.lab-not-started .element-tile.initial-element {
+  border-color: color-mix(in srgb, var(--active-border) 50%, transparent);
+  box-shadow:
+    0 5px 12px color-mix(in srgb, var(--active-shadow) 28%, transparent),
+    0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+  translate: 0 -4px;
+  scale: 1.045;
+}
+
+.element-tile.active-click-target::before,
+body.lab-not-started .element-tile.initial-element::before {
+  inset: -8px;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--active-glow) 54%, transparent) 0%, transparent 72%);
+  filter: blur(3px);
+}
+
+.element-tile.active-click-target::after {
+  content: none;
+  display: none;
+}
+
+.active-tap-target {
+  position: relative;
+  z-index: 60;
+  display: grid;
+  grid-column: 7 / span 6;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: center;
+  width: min(100%, 360px);
+  min-height: 156px;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--active-border) 64%, transparent);
+  border-radius: 30px;
+  background: var(--active-bg);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  box-shadow:
+    0 18px 44px color-mix(in srgb, var(--active-shadow) 42%, transparent),
+    0 0 0 1px rgba(255, 255, 255, 0.96) inset;
+  touch-action: manipulation;
+  isolation: isolate;
+}
+
+.active-tap-target::before {
+  content: "";
+  position: absolute;
+  inset: -34px;
+  z-index: -1;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--active-glow) 80%, transparent) 0%, color-mix(in srgb, var(--active-glow) 34%, transparent) 42%, transparent 72%);
+  filter: blur(9px);
+}
+
+.active-tap-target:active {
+  scale: 0.985;
+}
+
+.active-tap-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: start;
+}
+
+.active-tap-number {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.active-tap-level {
+  color: var(--blue-deep);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.active-tap-symbol {
+  display: block;
+  margin-top: 4px;
+  font-size: clamp(3rem, 7vw, 5.3rem);
+  font-weight: 950;
+  letter-spacing: -0.09em;
+  line-height: 0.86;
+}
+
+.active-tap-name {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted-strong);
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+
+.active-tap-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.active-tap-chip {
+  border: 1px solid color-mix(in srgb, var(--active-border) 22%, transparent);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  padding: 6px 9px;
+  color: var(--muted-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+@media (max-width: 900px) {
+  .active-tap-target {
+    grid-column: 5 / span 10;
+    width: min(100%, 330px);
+    min-height: 146px;
+  }
+}
