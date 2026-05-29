@@ -85,5 +85,32 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="main.js"></script>
+  <script>
+    renderDetails = function renderDetails() {
+      const element = getActiveElement();
+      const elementState = getElementState(state, element.symbol);
+      dom.selectedName.textContent = state.hasStarted ? `${element.name} · Lv. ${elementState.level}` : element.name;
+      if (!state.hasStarted) {
+        dom.elementDetails.innerHTML = `<div class="compact-card" style="padding: 14px;"><strong>Table inactive.</strong></div>`;
+        return;
+      }
+      const cost1 = getLevelCost(element, 1);
+      const cost10 = getLevelCost(element, 10);
+      const max = getBuyMaxQuantity(element);
+      dom.elementDetails.innerHTML = `
+        <div class="detail-row"><span>Production</span><strong>${formatNumber(getElementProduction(element))}/sec</strong></div>
+        <div class="buy-row">
+          <button class="buy-button" data-buy="1">Buy 1<br><small>${formatNumber(cost1)}</small></button>
+          <button class="buy-button" data-buy="10">Buy 10<br><small>${formatNumber(cost10)}</small></button>
+          <button class="buy-button" data-buy="max">Buy Max<br><small>${max.quantity ? `${max.quantity} levels` : "—"}</small></button>
+        </div>
+      `;
+      dom.elementDetails.querySelectorAll("[data-buy]").forEach(button => {
+        const value = button.dataset.buy;
+        button.addEventListener("click", () => buyLevels(element.symbol, value === "max" ? "max" : Number(value)));
+      });
+    };
+    renderFull();
+  </script>
 </body>
 </html>
