@@ -265,6 +265,78 @@
       if (!elements.some(existing => existing.symbol === element.symbol)) elements.push(element);
     }
 
+    const milestoneLevels = [10, 25, 50, 100];
+    const milestoneCostFactors = { 10: 4, 25: 18, 50: 70, 100: 260 };
+    const milestoneMultipliers = { 10: 1.6, 25: 2, 50: 2.6, 100: 3.5 };
+    const assignedMilestones = new Map();
+    const existingMilestoneAssignments = {
+      focused_chamber: ["H", 10],
+      hydrogen_containment: ["H", 25],
+      pipette_array: ["H", 50],
+      hydrogen_manifold: ["H", 100],
+      magnetic_lens: ["He", 10],
+      helium_cooling: ["He", 25],
+      noble_gas_buffer: ["He", 50],
+      helium_recapture: ["He", 100],
+      lab_assistant: ["Li", 10],
+      lithium_channels: ["Li", 25],
+      ion_exchange: ["Li", 50],
+      alkali_boost: ["Li", 100],
+      beryllium_frame: ["Be", 10],
+      beryllium_lattice: ["Be", 25],
+      precision_balancer: ["Be", 50],
+      structural_scaffold: ["Be", 100],
+      boron_efficiency: ["B", 10],
+      semiconductor_grid: ["B", 25],
+      boron_doping: ["B", 50],
+      carbon_lattice: ["C", 10],
+      carbon_chains: ["C", 25],
+      compound_modeling: ["C", 50],
+      nitrogen_modeling: ["N", 10],
+      pressure_vessel: ["N", 25],
+      reaction_forecasting: ["N", 50],
+      oxygen_reaction_web: ["O", 10],
+      oxidation_cycle: ["O", 25],
+      catalyst_cloud: ["O", 50],
+      fluorine_catalyst: ["F", 10],
+      halogen_surge: ["F", 25],
+      neon_tube_array: ["Ne", 10],
+      publication_pipeline: ["Ne", 25]
+    };
+
+    function milestoneKey(symbol, level) { return `${symbol}:${level}`; }
+    function getMilestoneUpgradeCost(element, level) { return Math.ceil(element.baseCost * milestoneCostFactors[level]); }
+
+    for (const [upgradeId, [symbol, level]] of Object.entries(existingMilestoneAssignments)) {
+      const upgrade = upgrades.find(item => item.id === upgradeId);
+      if (!upgrade) continue;
+      const originalRequires = upgrade.requires;
+      upgrade.requires = current => isUnlocked(current, symbol) && getElementState(current, symbol).level >= level && originalRequires(current);
+      upgrade.description = `${symbol} Lv. ${level} milestone. ${upgrade.description}`;
+      upgrade.milestoneSymbol = symbol;
+      upgrade.milestoneLevel = level;
+      assignedMilestones.set(milestoneKey(symbol, level), upgrade.id);
+    }
+
+    for (const element of elements) {
+      for (const level of milestoneLevels) {
+        const key = milestoneKey(element.symbol, level);
+        if (assignedMilestones.has(key)) continue;
+        const multiplier = milestoneMultipliers[level];
+        upgrades.push({
+          id: `milestone_${element.symbol.toLowerCase()}_${level}`,
+          name: `${element.name} Lv. ${level}`,
+          description: `${element.symbol} Lv. ${level} milestone. ${element.name} production x${multiplier}.`,
+          cost: getMilestoneUpgradeCost(element, level),
+          milestoneSymbol: element.symbol,
+          milestoneLevel: level,
+          requires: current => isUnlocked(current, element.symbol) && getElementState(current, element.symbol).level >= level,
+          effect: current => { current.elementMultipliers[element.symbol] *= multiplier; }
+        });
+        assignedMilestones.set(key, `milestone_${element.symbol.toLowerCase()}_${level}`);
+      }
+    }
+
     function ensureExtendedSaveState(current = state) {
       for (const element of elements) {
         if (!current.elements[element.symbol]) current.elements[element.symbol] = { unlocked: false, level: 0 };
