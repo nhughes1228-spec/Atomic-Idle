@@ -9,8 +9,71 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    .periodic-table { min-height: 348px; }
-    body.lab-not-started .periodic-table { min-height: 348px; }
+    .table-panel {
+      overflow: visible;
+    }
+    .periodic-table {
+      min-height: 390px;
+      padding: 62px 76px 76px;
+      scroll-padding-inline: 76px;
+    }
+    body.lab-not-started .periodic-table {
+      min-height: 390px;
+      padding: 62px 76px 76px;
+      scroll-padding-inline: 76px;
+    }
+    @media (max-width: 720px) {
+      .periodic-table,
+      body.lab-not-started .periodic-table {
+        padding: 58px 64px 72px;
+        scroll-padding-inline: 64px;
+      }
+    }
+    .element-tile.active-click-target,
+    body.lab-not-started .element-tile.initial-element {
+      outline: 0;
+      border-color: color-mix(in srgb, var(--active-border) 64%, transparent);
+      box-shadow:
+        0 10px 22px color-mix(in srgb, var(--active-shadow) 58%, transparent),
+        0 22px 54px color-mix(in srgb, var(--active-shadow) 42%, transparent),
+        0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+      translate: 0 -18px;
+      scale: 1.18;
+    }
+    .element-tile.active-click-target::before,
+    body.lab-not-started .element-tile.initial-element::before {
+      inset: -24px;
+      border-radius: 999px;
+      background:
+        radial-gradient(circle at 50% 50%, var(--active-glow) 0%, color-mix(in srgb, var(--active-glow) 74%, transparent) 32%, transparent 72%);
+      filter: blur(7px);
+    }
+    .element-tile.active-click-target::after {
+      content: "";
+      position: absolute;
+      inset: -11px;
+      z-index: -1;
+      border-radius: 999px;
+      background: radial-gradient(circle, color-mix(in srgb, var(--active-glow) 60%, transparent), transparent 70%);
+      filter: blur(3px);
+    }
+    body.lab-not-started .element-tile.initial-element::after {
+      bottom: calc(100% + 26px);
+    }
+    @keyframes pulseTile {
+      0%, 100% {
+        box-shadow:
+          0 10px 22px color-mix(in srgb, var(--active-shadow) 50%, transparent),
+          0 22px 54px color-mix(in srgb, var(--active-shadow) 36%, transparent),
+          0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+      }
+      50% {
+        box-shadow:
+          0 14px 28px color-mix(in srgb, var(--active-shadow) 66%, transparent),
+          0 34px 82px color-mix(in srgb, var(--active-shadow) 52%, transparent),
+          0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+      }
+    }
     .research-effects-panel {
       margin-top: 18px;
     }
