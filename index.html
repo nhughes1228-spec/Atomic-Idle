@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="active-tap.css" />
+  <link rel="stylesheet" href="ui-shell.css" />
 </head>
 <body class="lab-not-started">
   <div class="app-shell">
@@ -30,18 +31,23 @@
           <span>Click Power</span>
           <strong id="click-display">1</strong>
         </div>
-        <div class="stat-card research-card">
+        <div class="stat-card research-card ui-hidden">
           <span>Research</span>
           <strong id="research-display">0</strong>
         </div>
       </section>
+
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </header>
 
     <main class="main-grid">
       <section class="panel table-panel">
         <div class="section-heading row-heading table-heading">
           <h2>Periodic Table</h2>
-          <button id="save-button" class="ghost-button" type="button">Save</button>
         </div>
         <div id="periodic-table" class="periodic-table" aria-label="Periodic table"></div>
       </section>
@@ -63,16 +69,7 @@
       </aside>
     </main>
 
-    <section class="panel research-effects-panel collapsed-panel">
-      <div class="section-heading">
-        <p class="eyebrow">Research Effects</p>
-        <h2>Permanent Lab Knowledge</h2>
-        <p class="research-effects-copy">Research is permanent after publishing. It makes every new run faster by improving production, click strength, discovery costs, level costs, offline time, and future Research gain.</p>
-      </div>
-      <div id="research-effects-grid" class="research-effects-grid"></div>
-    </section>
-
-    <section class="panel prestige-panel collapsed-panel">
+    <section class="panel prestige-panel collapsed-panel ui-hidden">
       <div>
         <p class="eyebrow">Publish Research</p>
         <h2>Prestige System</h2>
@@ -80,12 +77,58 @@
       </div>
       <button id="prestige-button" class="primary-button" type="button" disabled>Unlock Neon First</button>
     </section>
+  </div>
 
-    <footer class="footer-actions collapsed-panel">
-      <button id="export-button" class="ghost-button" type="button">Export Save</button>
-      <button id="import-button" class="ghost-button" type="button">Import Save</button>
-      <button id="reset-button" class="danger-button" type="button">Reset Save</button>
-    </footer>
+  <div id="game-menu-overlay" class="game-menu-overlay" aria-hidden="true">
+    <aside class="game-menu-panel" aria-label="Game menu">
+      <div class="game-menu-header">
+        <div>
+          <p class="eyebrow">Atomic Idle</p>
+          <h2>Menu</h2>
+        </div>
+        <button id="menu-close" class="menu-close" type="button" aria-label="Close menu">×</button>
+      </div>
+
+      <div class="menu-tabs" role="tablist" aria-label="Menu sections">
+        <button class="menu-tab-button active" type="button" data-menu-tab="stats">Stats</button>
+        <button class="menu-tab-button" type="button" data-menu-tab="save">Save</button>
+        <button class="menu-tab-button research-tab-button ui-hidden" type="button" data-menu-tab="research">Research</button>
+      </div>
+
+      <section class="menu-tab-panel active" data-menu-panel="stats">
+        <div class="menu-section-card">
+          <h3>Statistics</h3>
+          <div class="menu-stats-grid">
+            <div class="menu-stat"><span>Lifetime Particles</span><strong id="menu-lifetime-particles">0</strong></div>
+            <div class="menu-stat"><span>Highest Element</span><strong id="menu-highest-element">Hydrogen</strong></div>
+            <div class="menu-stat"><span>Prestiges</span><strong id="menu-published-count">0</strong></div>
+            <div class="menu-stat"><span>Upgrades Bought</span><strong id="menu-upgrades-bought">0</strong></div>
+            <div class="menu-stat"><span>Total Research</span><strong id="menu-research-total">0</strong></div>
+            <div class="menu-stat"><span>Discovery Discount</span><strong id="menu-discovery-discount">0%</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="menu-tab-panel" data-menu-panel="save">
+        <div class="menu-section-card">
+          <h3>Save Options</h3>
+          <div class="menu-actions">
+            <button id="save-button" class="ghost-button" type="button">Save</button>
+            <button id="export-button" class="ghost-button" type="button">Export Save</button>
+            <button id="import-button" class="ghost-button" type="button">Import Save</button>
+            <button id="reset-button" class="danger-button" type="button">Reset Save</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="menu-tab-panel" data-menu-panel="research">
+        <div class="menu-section-card">
+          <h3>Research Effects</h3>
+          <p class="research-menu-note">Research is permanent after publishing. It makes every new run faster by improving production, click strength, discovery costs, level costs, offline time, and future Research gain.</p>
+        </div>
+        <div id="research-effects-grid" class="research-effects-grid"></div>
+      </section>
+    </aside>
   </div>
 
   <div id="float-layer" class="float-layer" aria-hidden="true"></div>
@@ -94,6 +137,7 @@
   <script src="main.js"></script>
   <script src="economy-tuning.js"></script>
   <script src="active-tap.js"></script>
+  <script src="ui-shell.js"></script>
   <script src="dev-checks.js"></script>
 </body>
 </html>
