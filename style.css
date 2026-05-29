@@ -226,17 +226,22 @@ body:not(.lab-not-started) .table-intro { display: none; }
   gap: 0;
   overflow-x: auto;
   overflow-y: visible;
-  padding: 28px 10px 18px;
-  min-height: 220px;
+  padding: 34px 14px 22px;
+  min-height: 230px;
   isolation: isolate;
 }
 
 body.lab-not-started .periodic-table {
   grid-template-columns: repeat(18, minmax(62px, 1fr));
-  min-height: 310px;
+  min-height: 320px;
 }
 
 .element-tile {
+  --active-bg: linear-gradient(145deg, #ffffff, #e7f2ff 46%, #cde6ff);
+  --active-border: rgba(24, 90, 188, 0.98);
+  --active-shadow: rgba(47, 128, 237, 0.36);
+  --active-glow: rgba(47, 128, 237, 0.30);
+  --active-plinth: rgba(24, 90, 188, 0.90);
   position: relative;
   min-width: 50px;
   aspect-ratio: 1;
@@ -247,9 +252,10 @@ body.lab-not-started .periodic-table {
   color: var(--ink);
   cursor: pointer;
   text-align: left;
-  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, opacity 120ms ease, filter 120ms ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease, opacity 120ms ease, filter 120ms ease, translate 120ms ease, scale 120ms ease;
   touch-action: manipulation;
   user-select: none;
+  will-change: translate, scale;
 }
 
 .element-tile + .element-tile { margin-left: -1px; }
@@ -273,18 +279,19 @@ body.lab-not-started .element-tile.locked { opacity: 0.52; }
 
 .element-tile.active-click-target,
 body.lab-not-started .element-tile.initial-element {
-  z-index: 20;
+  z-index: 30;
   opacity: 1;
-  filter: none;
-  border-color: rgba(24, 90, 188, 0.98);
-  background: linear-gradient(145deg, #ffffff, #e7f2ff 46%, #cde6ff);
-  outline: 5px solid rgba(47, 128, 237, 0.22);
-  outline-offset: 3px;
+  filter: saturate(1.28) contrast(1.04);
+  border-color: var(--active-border);
+  background: var(--active-bg);
+  outline: 5px solid var(--active-glow);
+  outline-offset: 4px;
   box-shadow:
-    0 4px 0 rgba(24, 90, 188, 0.9),
-    0 22px 48px rgba(47, 128, 237, 0.34),
+    0 7px 0 var(--active-plinth),
+    0 28px 62px var(--active-shadow),
     0 0 0 1px rgba(255, 255, 255, 0.95) inset;
-  translate: 0 -12px;
+  translate: 0 -18px;
+  scale: 1.22;
   animation: pulseTile 1.8s infinite;
 }
 
@@ -292,10 +299,10 @@ body.lab-not-started .element-tile.initial-element {
 body.lab-not-started .element-tile.initial-element::before {
   content: "";
   position: absolute;
-  inset: -8px;
+  inset: -12px;
   z-index: -1;
-  border-radius: 4px;
-  background: radial-gradient(circle, rgba(47, 128, 237, 0.28), transparent 68%);
+  border-radius: 6px;
+  background: radial-gradient(circle, var(--active-glow), transparent 70%);
 }
 
 .element-tile.active-click-target:hover,
@@ -305,18 +312,18 @@ body.lab-not-started .element-tile.initial-element::after {
   content: "Start here";
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 18px);
+  bottom: calc(100% + 24px);
   transform: translateX(-50%);
   width: max-content;
   padding: 6px 9px;
   border-radius: 999px;
-  background: var(--blue);
+  background: var(--active-border);
   color: #ffffff;
   font-size: 0.62rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  box-shadow: 0 10px 24px rgba(47, 128, 237, 0.24);
+  box-shadow: 0 10px 24px var(--active-shadow);
 }
 
 .element-tile.frontier {
@@ -331,9 +338,7 @@ body.lab-not-started .element-tile.initial-element::after {
   box-shadow: 0 0 0 4px rgba(35, 163, 109, 0.13);
 }
 
-.element-tile.selected {
-  border-color: var(--blue);
-}
+.element-tile.selected { border-color: var(--active-border); }
 
 .element-number {
   position: absolute;
@@ -371,13 +376,62 @@ body.lab-not-started .element-tile.initial-element::after {
   font-weight: 900;
 }
 
-.category-nonmetal { background: linear-gradient(145deg, #ffffff, #eaf6ff); }
-.category-noble-gas { background: linear-gradient(145deg, #ffffff, #eef0ff); }
-.category-alkali-metal { background: linear-gradient(145deg, #ffffff, #fff4df); }
-.category-alkaline-earth { background: linear-gradient(145deg, #ffffff, #fff8dc); }
-.category-metalloid { background: linear-gradient(145deg, #ffffff, #e9fff6); }
-.category-diatomic-nonmetal { background: linear-gradient(145deg, #ffffff, #e8f7ff); }
-.category-halogen { background: linear-gradient(145deg, #ffffff, #fff0f6); }
+.category-nonmetal {
+  --active-bg: linear-gradient(145deg, #ffffff, #bde9ff 38%, #73cfff);
+  --active-border: rgba(0, 126, 196, 0.98);
+  --active-shadow: rgba(0, 126, 196, 0.38);
+  --active-glow: rgba(0, 166, 230, 0.30);
+  --active-plinth: rgba(0, 112, 173, 0.88);
+  background: linear-gradient(145deg, #ffffff, #eaf6ff);
+}
+.category-noble-gas {
+  --active-bg: linear-gradient(145deg, #ffffff, #d8d7ff 42%, #9a97ff);
+  --active-border: rgba(91, 83, 215, 0.98);
+  --active-shadow: rgba(91, 83, 215, 0.38);
+  --active-glow: rgba(126, 118, 255, 0.30);
+  --active-plinth: rgba(74, 67, 190, 0.88);
+  background: linear-gradient(145deg, #ffffff, #eef0ff);
+}
+.category-alkali-metal {
+  --active-bg: linear-gradient(145deg, #ffffff, #ffe2a1 40%, #ffbd45);
+  --active-border: rgba(194, 112, 0, 0.98);
+  --active-shadow: rgba(194, 112, 0, 0.34);
+  --active-glow: rgba(255, 175, 45, 0.32);
+  --active-plinth: rgba(168, 93, 0, 0.88);
+  background: linear-gradient(145deg, #ffffff, #fff4df);
+}
+.category-alkaline-earth {
+  --active-bg: linear-gradient(145deg, #ffffff, #fff1a6 40%, #ffe052);
+  --active-border: rgba(168, 135, 0, 0.98);
+  --active-shadow: rgba(168, 135, 0, 0.34);
+  --active-glow: rgba(255, 221, 67, 0.34);
+  --active-plinth: rgba(141, 112, 0, 0.88);
+  background: linear-gradient(145deg, #ffffff, #fff8dc);
+}
+.category-metalloid {
+  --active-bg: linear-gradient(145deg, #ffffff, #b7f6dc 42%, #5edca2);
+  --active-border: rgba(22, 139, 88, 0.98);
+  --active-shadow: rgba(22, 139, 88, 0.36);
+  --active-glow: rgba(54, 199, 133, 0.30);
+  --active-plinth: rgba(12, 111, 68, 0.88);
+  background: linear-gradient(145deg, #ffffff, #e9fff6);
+}
+.category-diatomic-nonmetal {
+  --active-bg: linear-gradient(145deg, #ffffff, #b9f3ff 40%, #5ad7ee);
+  --active-border: rgba(0, 139, 168, 0.98);
+  --active-shadow: rgba(0, 139, 168, 0.36);
+  --active-glow: rgba(56, 205, 232, 0.32);
+  --active-plinth: rgba(0, 116, 142, 0.88);
+  background: linear-gradient(145deg, #ffffff, #e8f7ff);
+}
+.category-halogen {
+  --active-bg: linear-gradient(145deg, #ffffff, #ffd0e2 42%, #ff86b5);
+  --active-border: rgba(196, 48, 112, 0.98);
+  --active-shadow: rgba(196, 48, 112, 0.35);
+  --active-glow: rgba(255, 105, 170, 0.32);
+  --active-plinth: rgba(162, 33, 91, 0.88);
+  background: linear-gradient(145deg, #ffffff, #fff0f6);
+}
 
 .detail-row,
 .compact-card {
@@ -559,8 +613,8 @@ button:disabled,
 }
 
 @keyframes pulseTile {
-  0%, 100% { box-shadow: 0 4px 0 rgba(24, 90, 188, 0.9), 0 22px 48px rgba(47, 128, 237, 0.28); }
-  50% { box-shadow: 0 6px 0 rgba(24, 90, 188, 0.95), 0 30px 62px rgba(47, 128, 237, 0.42); }
+  0%, 100% { box-shadow: 0 7px 0 var(--active-plinth), 0 28px 62px var(--active-shadow); }
+  50% { box-shadow: 0 9px 0 var(--active-plinth), 0 38px 78px var(--active-shadow); }
 }
 
 @media (max-width: 1120px) {
