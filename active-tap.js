@@ -9,7 +9,12 @@
   const originalUpdateTableState = updateTableState;
   let activeTapButton = null;
 
+  document.addEventListener("selectstart", event => {
+    if (event.target.closest?.(".app-shell")) event.preventDefault();
+  });
+
   unlockElement = function unlockOrSelectElement(symbol, event) {
+    event?.preventDefault?.();
     catchUpProgress(false);
     const element = elements.find(item => item.symbol === symbol);
     if (!element) return;
@@ -38,6 +43,10 @@
     updateActiveTapTarget();
   };
 
+  function suppressSelectionGesture(event) {
+    event.preventDefault();
+  }
+
   function renderActiveTapTarget() {
     if (!dom.periodicTable) return;
     activeTapButton = document.createElement("button");
@@ -56,7 +65,12 @@
         <span class="active-tap-chip" data-role="active-production"></span>
       </span>
     `;
+    activeTapButton.addEventListener("contextmenu", suppressSelectionGesture);
+    activeTapButton.addEventListener("dragstart", suppressSelectionGesture);
+    activeTapButton.addEventListener("touchstart", event => event.preventDefault(), { passive: false });
+    activeTapButton.addEventListener("pointerdown", event => event.preventDefault());
     activeTapButton.addEventListener("click", event => {
+      event.preventDefault();
       if (!state.hasStarted) return activateLabFromHydrogen(event);
       return clickActiveElement(event);
     });
