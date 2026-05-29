@@ -58,6 +58,9 @@ body.lab-not-started .element-tile.initial-element::before {
     0 0 0 1px rgba(255, 255, 255, 0.96) inset;
   touch-action: manipulation;
   isolation: isolate;
+  overflow: hidden;
+  transform-origin: center;
+  transition: scale 70ms ease, translate 70ms ease, box-shadow 90ms ease, filter 90ms ease;
 }
 
 .active-tap-target::before {
@@ -70,8 +73,46 @@ body.lab-not-started .element-tile.initial-element::before {
   filter: blur(8px);
 }
 
+.active-tap-target.is-pressed,
 .active-tap-target:active {
-  scale: 0.985;
+  translate: 0 4px;
+  scale: 0.955;
+  filter: brightness(0.98) saturate(1.08);
+  box-shadow:
+    0 7px 18px color-mix(in srgb, var(--active-shadow) 36%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--active-border) 20%, transparent) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.96) inset;
+}
+
+.active-tap-target.tap-pop {
+  animation: activeTapPop 190ms cubic-bezier(.2, 1.6, .4, 1);
+}
+
+.active-tap-target.tap-pop::before {
+  animation: activeTapGlow 260ms ease-out;
+}
+
+.active-tap-target .tap-ripple {
+  position: absolute;
+  left: var(--tap-x, 50%);
+  top: var(--tap-y, 50%);
+  z-index: 0;
+  width: 18px;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--active-border) 28%, white 72%);
+  opacity: 0.58;
+  pointer-events: none;
+  translate: -50% -50%;
+  animation: activeTapRipple 360ms ease-out forwards;
+}
+
+.active-tap-header,
+.active-tap-symbol,
+.active-tap-name,
+.active-tap-stats {
+  position: relative;
+  z-index: 1;
 }
 
 .active-tap-header {
@@ -131,6 +172,23 @@ body.lab-not-started .element-tile.initial-element::before {
   color: var(--muted-strong);
   font-size: 0.68rem;
   font-weight: 900;
+}
+
+@keyframes activeTapPop {
+  0% { scale: 0.955; }
+  58% { scale: 1.045; }
+  100% { scale: 1; }
+}
+
+@keyframes activeTapGlow {
+  0% { filter: blur(8px); opacity: 1; }
+  45% { filter: blur(11px); opacity: 1; }
+  100% { filter: blur(8px); opacity: 1; }
+}
+
+@keyframes activeTapRipple {
+  from { opacity: 0.55; scale: 0.4; }
+  to { opacity: 0; scale: 15; }
 }
 
 @media (max-width: 900px) {
