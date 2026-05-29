@@ -337,6 +337,24 @@
       }
     }
 
+    function getResearchDiscoveryDiscount(current = state) {
+      return Math.min(0.25, (current.research || 0) * 0.0035);
+    }
+
+    function getElementDiscoveryCurveMultiplier(element) {
+      if (!element?.unlockCost) return 1;
+      const atomicStep = Math.max(0, element.atomicNumber - 1);
+      const earlyCurve = Math.pow(1.14, Math.min(atomicStep, 9));
+      const postNeonCurve = Math.pow(1.26, Math.max(0, element.atomicNumber - 10));
+      const postArgonCurve = Math.pow(1.12, Math.max(0, element.atomicNumber - 18));
+      return earlyCurve * postNeonCurve * postArgonCurve;
+    }
+
+    getUnlockCost = function getUnlockCost(element) {
+      if (!element?.unlockCost) return 0;
+      return element.unlockCost * getElementDiscoveryCurveMultiplier(element) * (1 - getResearchDiscoveryDiscount(state));
+    };
+
     function ensureExtendedSaveState(current = state) {
       for (const element of elements) {
         if (!current.elements[element.symbol]) current.elements[element.symbol] = { unlocked: false, level: 0 };
@@ -351,7 +369,7 @@
       const research = state.research || 0;
       const passive = 1 + research * 0.08;
       const click = 1 + research * 0.06;
-      const discoveryDiscount = Math.min(55, research * 1.2);
+      const discoveryDiscount = getResearchDiscoveryDiscount(state) * 100;
       const levelDiscount = Math.min(35, research * 0.6);
       const offlineHours = Math.floor(research / 8);
       const researchGain = 1 + research * 0.015;
