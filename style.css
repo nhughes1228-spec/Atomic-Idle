@@ -128,10 +128,9 @@ h2 {
 
 .main-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 390px);
   grid-template-areas:
     "table table"
-    "status details"
     "upgrades details";
   gap: 16px;
   align-items: start;
@@ -157,7 +156,6 @@ body.lab-not-started .main-grid {
   grid-template-columns: 1fr;
   grid-template-areas:
     "table"
-    "status"
     "details"
     "upgrades";
 }
@@ -187,8 +185,11 @@ body.lab-not-started .footer-actions {
   padding: 20px;
 }
 
-.table-panel { grid-area: table; }
-.status-panel { grid-area: status; }
+.table-panel {
+  grid-area: table;
+  overflow: visible;
+}
+
 .detail-panel { grid-area: details; }
 .upgrades-panel { grid-area: upgrades; }
 
@@ -201,6 +202,8 @@ body.lab-not-started .footer-actions {
   align-items: start;
 }
 
+.table-heading { margin-bottom: 10px; }
+
 .table-intro {
   margin: 8px 0 0;
   color: var(--muted);
@@ -209,29 +212,38 @@ body.lab-not-started .footer-actions {
 
 body:not(.lab-not-started) .table-intro { display: none; }
 
+.table-status {
+  max-width: 80ch;
+  margin: 10px 0 0;
+  color: var(--muted-strong);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .periodic-table {
   display: grid;
-  grid-template-columns: repeat(18, minmax(52px, 1fr));
-  gap: 7px;
+  grid-template-columns: repeat(18, minmax(50px, 1fr));
+  gap: 0;
   overflow-x: auto;
-  padding: 22px 6px 8px;
-  min-height: 240px;
+  overflow-y: visible;
+  padding: 28px 10px 18px;
+  min-height: 220px;
+  isolation: isolate;
 }
 
 body.lab-not-started .periodic-table {
-  grid-template-columns: repeat(18, minmax(64px, 1fr));
-  gap: 9px;
-  min-height: 320px;
+  grid-template-columns: repeat(18, minmax(62px, 1fr));
+  min-height: 310px;
 }
 
 .element-tile {
   position: relative;
-  min-width: 52px;
+  min-width: 50px;
   aspect-ratio: 1;
   padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(62, 91, 117, 0.28);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.78);
   color: var(--ink);
   cursor: pointer;
   text-align: left;
@@ -240,14 +252,14 @@ body.lab-not-started .periodic-table {
   user-select: none;
 }
 
+.element-tile + .element-tile { margin-left: -1px; }
+
 .element-tile:hover,
-.element-tile:active {
-  transform: none;
-}
+.element-tile:active { transform: none; }
 
 .element-tile.locked {
   cursor: default;
-  opacity: 0.32;
+  opacity: 0.34;
   filter: grayscale(0.8);
 }
 
@@ -257,32 +269,43 @@ body.lab-not-started .element-tile {
   background: rgba(255, 255, 255, 0.78);
 }
 
-body.lab-not-started .element-tile.locked {
-  opacity: 0.52;
-}
+body.lab-not-started .element-tile.locked { opacity: 0.52; }
 
 .element-tile.active-click-target,
 body.lab-not-started .element-tile.initial-element {
-  z-index: 5;
+  z-index: 20;
   opacity: 1;
   filter: none;
-  border-color: rgba(47, 128, 237, 0.82);
-  outline: 4px solid rgba(47, 128, 237, 0.16);
-  outline-offset: 2px;
-  box-shadow: 0 20px 44px rgba(47, 128, 237, 0.24);
+  border-color: rgba(24, 90, 188, 0.98);
+  background: linear-gradient(145deg, #ffffff, #e7f2ff 46%, #cde6ff);
+  outline: 5px solid rgba(47, 128, 237, 0.22);
+  outline-offset: 3px;
+  box-shadow:
+    0 4px 0 rgba(24, 90, 188, 0.9),
+    0 22px 48px rgba(47, 128, 237, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+  translate: 0 -12px;
   animation: pulseTile 1.8s infinite;
 }
 
-.element-tile.active-click-target:hover,
-body.lab-not-started .element-tile.initial-element:hover {
-  transform: none;
+.element-tile.active-click-target::before,
+body.lab-not-started .element-tile.initial-element::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: 4px;
+  background: radial-gradient(circle, rgba(47, 128, 237, 0.28), transparent 68%);
 }
+
+.element-tile.active-click-target:hover,
+body.lab-not-started .element-tile.initial-element:hover { transform: none; }
 
 body.lab-not-started .element-tile.initial-element::after {
   content: "Start here";
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 18px);
   transform: translateX(-50%);
   width: max-content;
   padding: 6px 9px;
@@ -297,20 +320,19 @@ body.lab-not-started .element-tile.initial-element::after {
 }
 
 .element-tile.frontier {
-  border-color: rgba(47, 128, 237, 0.48);
-  box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.12);
+  border-color: rgba(47, 128, 237, 0.58);
+  box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.12) inset;
   opacity: 1;
 }
 
 .element-tile.affordable {
   animation: pulseTile 1.8s infinite;
-  border-color: rgba(35, 163, 109, 0.75);
+  border-color: rgba(35, 163, 109, 0.9);
   box-shadow: 0 0 0 4px rgba(35, 163, 109, 0.13);
 }
 
 .element-tile.selected {
   border-color: var(--blue);
-  box-shadow: 0 10px 26px rgba(47, 128, 237, 0.18);
 }
 
 .element-number {
@@ -357,14 +379,6 @@ body.lab-not-started .element-tile.initial-element::after {
 .category-diatomic-nonmetal { background: linear-gradient(145deg, #ffffff, #e8f7ff); }
 .category-halogen { background: linear-gradient(145deg, #ffffff, #fff0f6); }
 
-.status-help {
-  margin-bottom: 16px;
-  color: var(--muted);
-  font-weight: 650;
-  line-height: 1.5;
-}
-
-.objective-box,
 .detail-row,
 .compact-card {
   border: 1px solid var(--line);
@@ -372,24 +386,12 @@ body.lab-not-started .element-tile.initial-element::after {
   border-radius: 18px;
 }
 
-.objective-box {
-  display: grid;
-  gap: 5px;
-  padding: 14px;
-}
-
-.objective-box span,
 .detail-row span {
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 850;
   letter-spacing: 0.10em;
   text-transform: uppercase;
-}
-
-.objective-box strong {
-  color: var(--muted-strong);
-  line-height: 1.35;
 }
 
 .details-stack,
@@ -557,8 +559,8 @@ button:disabled,
 }
 
 @keyframes pulseTile {
-  0%, 100% { box-shadow: 0 12px 32px rgba(47, 128, 237, 0.18); }
-  50% { box-shadow: 0 18px 42px rgba(47, 128, 237, 0.28); }
+  0%, 100% { box-shadow: 0 4px 0 rgba(24, 90, 188, 0.9), 0 22px 48px rgba(47, 128, 237, 0.28); }
+  50% { box-shadow: 0 6px 0 rgba(24, 90, 188, 0.95), 0 30px 62px rgba(47, 128, 237, 0.42); }
 }
 
 @media (max-width: 1120px) {
@@ -570,7 +572,6 @@ button:disabled,
   .main-grid {
     grid-template-areas:
       "table"
-      "status"
       "details"
       "upgrades";
   }
@@ -594,7 +595,7 @@ button:disabled,
 
   .periodic-table,
   body.lab-not-started .periodic-table {
-    grid-template-columns: repeat(18, 58px);
+    grid-template-columns: repeat(18, 56px);
   }
 
   .prestige-panel {
