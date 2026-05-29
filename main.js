@@ -1,6 +1,7 @@
 const SAVE_KEY = "atomic-idle-save-v1";
 const SAVE_INTERVAL_MS = 8000;
 const OFFLINE_CAP_SECONDS = 60 * 60 * 4;
+const MAX_REALTIME_CATCHUP_SECONDS = 60 * 60 * 4;
 
 const elements = [
   { atomicNumber: 1, symbol: "H", name: "Hydrogen", category: "nonmetal", row: 1, col: 1, unlockCost: 0, baseCost: 18, baseProduction: 0.06, role: "Particle foundation and basic chamber calibration." },
@@ -59,17 +60,16 @@ const defaultState = () => ({
   selectedSymbol: "H",
   lastSaved: Date.now(),
   discoveredHighest: 1,
-  publishedCount: 0,
-  elements: Object.fromEntries(elements.map(element => [element.symbol, { unlocked: element.symbol === "H", level: element.symbol === "H" ? 1 : 0 }])),
   purchasedUpgrades: [],
   multipliers: { click: 1, global: 1 },
   elementMultipliers: Object.fromEntries(elements.map(element => [element.symbol, 1])),
-  bonuses: { autoClicksPerSecond: 0, clickFromPassive: 0, costReduction: 0, offlineCapHours: 0, perElementGlobal: 0, researchGain: 1 }
+  bonuses: { autoClicksPerSecond: 0, clickFromPassive: 0, costReduction: 0, offlineCapHours: 0, perElementGlobal: 0, researchGain: 1 },
+  elements: Object.fromEntries(elements.map(element => [element.symbol, { unlocked: element.symbol === "H", level: element.symbol === "H" ? 1 : 0 }]))
 });
 
 let state = loadGame();
 let toastTimeout = null;
-let lastTick = performance.now();
+let lastWallClock = Date.now();
 let pendingLiveUpdate = false;
 let floatToggle = 0;
 const tileRefs = new Map();
@@ -155,7 +155,10 @@ function applyOfflineProgress(current) {
   const elapsedSeconds = Math.max(0, (Date.now() - (current.lastSaved || Date.now())) / 1000);
   const cap = OFFLINE_CAP_SECONDS + (current.bonuses?.offlineCapHours || 0) * 3600;
   const effectiveSeconds = Math.min(elapsedSeconds, cap);
-  if (!current.hasStarted || effectiveSeconds < 30) return;
+  if (!current.hasStarted || effectiveSeconds < 5) {
+    current.lastSaved = Date.now();
+    return;
+  }
   rebuildDerivedEffects(current);
   const offlineGain = getParticlesPerSecond(current) * effectiveSeconds * 0.65;
   if (offlineGain > 1) {
@@ -163,9 +166,25 @@ function applyOfflineProgress(current) {
     current.lifetimeParticles += offlineGain;
     setTimeout(() => showToast(`Offline lab report: +${formatNumber(offlineGain)} Particles collected.`), 400);
   }
+  current.lastSaved = Date.now();
+}
+
+function catchUpProgress(showMessage = false) {
+  const now = Date.now();
+  const elapsedSeconds = Math.max(0, (now - lastWallClock) / 1000);
+  lastWallClock = now;
+  if (!state.hasStarted || elapsedSeconds <= 0) return 0;
+  const effectiveSeconds = Math.min(elapsedSeconds, MAX_REALTIME_CATCHUP_SECONDS);
+  const gain = getParticlesPerSecond() * effectiveSeconds;
+  if (gain > 0) {
+    addParticles(gain);
+    if (showMessage && effectiveSeconds >= 5) showToast(`Background lab time: +${formatNumber(gain)} Particles.`);
+  }
+  return gain;
 }
 
 function saveGame(showMessage = false) {
+  catchUpProgress(false);
   state.lastSaved = Date.now();
   localStorage.setItem(SAVE_KEY, JSON.stringify(state));
   if (showMessage) showToast("Experiment saved.");
@@ -243,6 +262,7 @@ function addParticles(amount) { state.particles += amount; state.lifetimeParticl
 
 function activateLabFromHydrogen(event) {
   state.hasStarted = true;
+  lastWallClock = Date.now();
   state.selectedSymbol = "H";
   const gain = getClickPower();
   addParticles(gain);
@@ -253,6 +273,7 @@ function activateLabFromHydrogen(event) {
 }
 
 function clickActiveElement(event) {
+  catchUpProgress(false);
   if (!state.hasStarted) return showToast("Begin with Hydrogen first.");
   const gain = getClickPower();
   addParticles(gain);
@@ -270,6 +291,7 @@ function requestLiveUpdate() {
 }
 
 function unlockElement(symbol, event) {
+  catchUpProgress(false);
   const element = elements.find(item => item.symbol === symbol);
   if (!element) return;
   const elementState = getElementState(state, symbol);
@@ -300,6 +322,7 @@ function unlockElement(symbol, event) {
 }
 
 function buyLevels(symbol, quantity) {
+  catchUpProgress(false);
   const element = elements.find(item => item.symbol === symbol);
   if (!element || !isUnlocked(state, symbol) || !state.hasStarted) return;
   let amount = quantity;
@@ -317,6 +340,7 @@ function buyLevels(symbol, quantity) {
 }
 
 function buyUpgrade(upgradeId) {
+  catchUpProgress(false);
   const upgrade = upgrades.find(item => item.id === upgradeId);
   if (!upgrade || state.purchasedUpgrades.includes(upgradeId) || !state.hasStarted) return;
   if (!upgrade.requires(state)) return showToast("This upgrade is not ready yet.");
@@ -330,6 +354,7 @@ function buyUpgrade(upgradeId) {
 }
 
 function publishResearch() {
+  catchUpProgress(false);
   if (!isUnlocked(state, "Ne")) return;
   const gain = calculateResearchGain();
   if (gain <= 0) return;
@@ -337,6 +362,7 @@ function publishResearch() {
   state = defaultState();
   state.research = oldResearch + gain;
   state.publishedCount += 1;
+  lastWallClock = Date.now();
   rebuildDerivedEffects(state);
   showToast(`Published findings: +${formatNumber(gain)} Research. Click Hydrogen to begin the next experiment.`);
   renderFull();
@@ -507,13 +533,8 @@ function renderPrestige() {
   }
 }
 
-function gameLoop(now) {
-  const delta = Math.min(1, (now - lastTick) / 1000);
-  lastTick = now;
-  if (state.hasStarted) {
-    const gain = getParticlesPerSecond() * delta;
-    if (gain > 0) addParticles(gain);
-  }
+function gameLoop() {
+  catchUpProgress(false);
   updateLiveUI();
   requestAnimationFrame(gameLoop);
 }
@@ -562,6 +583,7 @@ function importSave() {
     JSON.parse(decoded);
     localStorage.setItem(SAVE_KEY, decoded);
     state = loadGame();
+    lastWallClock = Date.now();
     renderFull();
     showToast("Save imported.");
   } catch (error) {
@@ -573,9 +595,21 @@ function resetSave() {
   if (!confirm("Reset Atomic Idle completely? This cannot be undone.")) return;
   localStorage.removeItem(SAVE_KEY);
   state = defaultState();
+  lastWallClock = Date.now();
   rebuildDerivedEffects(state);
   renderFull();
   showToast("Save reset.");
+}
+
+function handleVisibilityChange() {
+  if (document.hidden) {
+    catchUpProgress(false);
+    saveGame(false);
+  } else {
+    catchUpProgress(true);
+    renderFull();
+    saveGame(false);
+  }
 }
 
 function wireEvents() {
@@ -584,11 +618,15 @@ function wireEvents() {
   dom.importButton.addEventListener("click", importSave);
   dom.resetButton.addEventListener("click", resetSave);
   dom.prestigeButton.addEventListener("click", publishResearch);
-  window.addEventListener("beforeunload", () => saveGame());
-  setInterval(() => saveGame(), SAVE_INTERVAL_MS);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  window.addEventListener("focus", () => { catchUpProgress(true); renderFull(); saveGame(false); });
+  window.addEventListener("pagehide", () => saveGame(false));
+  window.addEventListener("beforeunload", () => saveGame(false));
+  setInterval(() => saveGame(false), SAVE_INTERVAL_MS);
 }
 
 rebuildDerivedEffects(state);
+lastWallClock = Date.now();
 wireEvents();
 renderFull();
 requestAnimationFrame(gameLoop);
