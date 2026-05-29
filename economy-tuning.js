@@ -1,32 +1,29 @@
 // Economy tuning for milestone upgrades.
-// Milestone upgrade prices should feel proportional to the cost of reaching the required element level.
+// Milestone upgrade prices should feel proportional to the final level that unlocked the milestone,
+// not the total cumulative cost of reaching that milestone.
 
 (function tuneMilestoneUpgradeCosts() {
   if (typeof elements === "undefined" || typeof upgrades === "undefined" || typeof BALANCE === "undefined") return;
 
-  const milestoneCostRatios = {
-    10: 0.85,
-    25: 1.05,
-    50: 1.30,
-    100: 1.65
-  };
+  const milestoneFinalLevelCostMultiplier = 1.5;
 
-  function getCumulativeCostToReachLevel(element, targetLevel) {
-    let total = 0;
-    const startingLevel = element.symbol === "H" ? 1 : 1;
-    for (let level = startingLevel; level < targetLevel; level += 1) {
-      total += element.baseCost * Math.pow(BALANCE.levelCosts.growth, level);
-    }
-    return total;
+  function getFinalRequiredLevelCost(element, targetLevel) {
+    const finalRequiredLevel = Math.max(1, targetLevel - 1);
+    return element.baseCost * Math.pow(BALANCE.levelCosts.growth, finalRequiredLevel);
   }
 
   for (const upgrade of upgrades) {
-    if (!upgrade.element || !upgrade.level || !milestoneCostRatios[upgrade.level]) continue;
+    if (!upgrade.element || !upgrade.level) continue;
+    if (!BALANCE.milestones.levels.includes(upgrade.level)) continue;
+
     const element = elements.find(item => item.symbol === upgrade.element);
     if (!element) continue;
 
-    const levelInvestment = getCumulativeCostToReachLevel(element, upgrade.level);
-    const tunedCost = Math.ceil(levelInvestment * milestoneCostRatios[upgrade.level]);
+    const finalLevelCost = getFinalRequiredLevelCost(element, upgrade.level);
+    const tunedCost = Math.ceil(finalLevelCost * milestoneFinalLevelCostMultiplier);
+
+    // Keep hand-authored upgrades from becoming cheaper than their original authored value,
+    // but stop pricing them as if the player must repay the full leveling journey.
     upgrade.cost = Math.max(upgrade.cost || 0, tunedCost);
   }
 
