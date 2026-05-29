@@ -13,64 +13,69 @@
       overflow: visible;
     }
     .periodic-table {
-      min-height: 390px;
-      padding: 62px 76px 76px;
-      scroll-padding-inline: 76px;
+      min-height: 360px;
+      overflow: visible !important;
+      padding: 42px 6px 58px !important;
+      scroll-padding-inline: 0;
     }
     body.lab-not-started .periodic-table {
-      min-height: 390px;
-      padding: 62px 76px 76px;
-      scroll-padding-inline: 76px;
+      min-height: 360px;
+      overflow: visible !important;
+      padding: 42px 6px 58px !important;
+      scroll-padding-inline: 0;
     }
     @media (max-width: 720px) {
       .periodic-table,
       body.lab-not-started .periodic-table {
-        padding: 58px 64px 72px;
-        scroll-padding-inline: 64px;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        padding: 42px 16px 58px !important;
+        scroll-padding-inline: 16px;
       }
     }
     .element-tile.active-click-target,
     body.lab-not-started .element-tile.initial-element {
-      outline: 0;
-      border-color: color-mix(in srgb, var(--active-border) 64%, transparent);
+      outline: 0 !important;
+      border-color: color-mix(in srgb, var(--active-border) 58%, transparent);
       box-shadow:
-        0 10px 22px color-mix(in srgb, var(--active-shadow) 58%, transparent),
-        0 22px 54px color-mix(in srgb, var(--active-shadow) 42%, transparent),
+        0 10px 22px color-mix(in srgb, var(--active-shadow) 54%, transparent),
+        0 24px 56px color-mix(in srgb, var(--active-shadow) 40%, transparent),
         0 0 0 1px rgba(255, 255, 255, 0.95) inset;
-      translate: 0 -18px;
-      scale: 1.18;
+      translate: 0 -16px;
+      scale: 1.16;
     }
     .element-tile.active-click-target::before,
     body.lab-not-started .element-tile.initial-element::before {
-      inset: -24px;
+      inset: -28px;
       border-radius: 999px;
       background:
-        radial-gradient(circle at 50% 50%, var(--active-glow) 0%, color-mix(in srgb, var(--active-glow) 74%, transparent) 32%, transparent 72%);
-      filter: blur(7px);
+        radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--active-glow) 88%, transparent) 0%, color-mix(in srgb, var(--active-glow) 58%, transparent) 34%, transparent 74%);
+      filter: blur(8px);
     }
     .element-tile.active-click-target::after {
       content: "";
       position: absolute;
-      inset: -11px;
+      inset: -12px;
       z-index: -1;
       border-radius: 999px;
-      background: radial-gradient(circle, color-mix(in srgb, var(--active-glow) 60%, transparent), transparent 70%);
+      background: radial-gradient(circle, color-mix(in srgb, var(--active-glow) 50%, transparent), transparent 70%);
       filter: blur(3px);
     }
     body.lab-not-started .element-tile.initial-element::after {
-      bottom: calc(100% + 26px);
+      content: none !important;
+      display: none !important;
     }
     @keyframes pulseTile {
       0%, 100% {
         box-shadow:
-          0 10px 22px color-mix(in srgb, var(--active-shadow) 50%, transparent),
-          0 22px 54px color-mix(in srgb, var(--active-shadow) 36%, transparent),
+          0 10px 22px color-mix(in srgb, var(--active-shadow) 48%, transparent),
+          0 24px 56px color-mix(in srgb, var(--active-shadow) 34%, transparent),
           0 0 0 1px rgba(255, 255, 255, 0.95) inset;
       }
       50% {
         box-shadow:
-          0 14px 28px color-mix(in srgb, var(--active-shadow) 66%, transparent),
-          0 34px 82px color-mix(in srgb, var(--active-shadow) 52%, transparent),
+          0 14px 28px color-mix(in srgb, var(--active-shadow) 62%, transparent),
+          0 34px 80px color-mix(in srgb, var(--active-shadow) 48%, transparent),
           0 0 0 1px rgba(255, 255, 255, 0.95) inset;
       }
     }
