@@ -15,6 +15,7 @@
 
   const achievementDefinitions = buildAchievementDefinitions();
   let achievementToastTimer = null;
+  let tapSaveCounter = 0;
 
   function buildAchievementDefinitions() {
     const definitions = [];
@@ -84,16 +85,24 @@
 
     if (earnedAny) {
       rebuildDerivedEffects(state);
-      renderAchievementsPanel();
       saveGame(false);
       renderFull();
     }
+
+    return earnedAny;
   }
 
   function recordElementTap(symbol) {
     ensureAchievementState();
     state.achievementStats.elementTaps[symbol] = (state.achievementStats.elementTaps[symbol] || 0) + 1;
-    checkAchievements();
+    const earnedAny = checkAchievements();
+    updateAchievementProgressDisplay(symbol);
+
+    tapSaveCounter += 1;
+    if (!earnedAny && tapSaveCounter >= 25) {
+      tapSaveCounter = 0;
+      saveGame(false);
+    }
   }
 
   function showAchievementToast(definition) {
@@ -125,20 +134,53 @@
 
     list.innerHTML = "";
     for (const definition of achievementDefinitions) {
-      const progress = getAchievementProgress(definition);
-      const percent = Math.min(100, (progress / definition.target) * 100);
-      const isUnlocked = unlocked.has(definition.id);
       const card = document.createElement("article");
-      card.className = `achievement-card ${isUnlocked ? "unlocked" : ""}`;
+      card.className = "achievement-card";
+      card.dataset.achievementId = definition.id;
       card.innerHTML = `
-        <div class="achievement-meta"><span>${definition.element}</span><span>${isUnlocked ? "Unlocked" : `${formatNumber(Math.min(progress, definition.target))} / ${formatNumber(definition.target)}`}</span></div>
+        <div class="achievement-meta"><span>${definition.element}</span><span data-role="achievement-progress-text">0 / ${formatNumber(definition.target)}</span></div>
         <h4>${definition.name}</h4>
         <p>${definition.description}</p>
-        <div class="achievement-progress" aria-hidden="true"><span class="achievement-progress-fill" style="--achievement-progress:${percent}%"></span></div>
+        <div class="achievement-progress" aria-hidden="true"><span data-role="achievement-progress-fill" class="achievement-progress-fill" style="--achievement-progress:0%"></span></div>
         <span class="achievement-reward">${definition.reward}</span>
       `;
       list.appendChild(card);
     }
+
+    updateAllAchievementProgressDisplays();
+  }
+
+  function updateAllAchievementProgressDisplays() {
+    const count = document.getElementById("achievement-count");
+    const boost = document.getElementById("achievement-boost-summary");
+    const unlocked = getUnlockedAchievementSet();
+    if (count) count.textContent = `${unlocked.size} / ${achievementDefinitions.length}`;
+    if (boost) boost.textContent = summarizeAchievementBoosts();
+    for (const definition of achievementDefinitions) updateAchievementCard(definition, unlocked);
+  }
+
+  function updateAchievementProgressDisplay(symbol) {
+    const unlocked = getUnlockedAchievementSet();
+    const count = document.getElementById("achievement-count");
+    const boost = document.getElementById("achievement-boost-summary");
+    if (count) count.textContent = `${unlocked.size} / ${achievementDefinitions.length}`;
+    if (boost) boost.textContent = summarizeAchievementBoosts();
+    for (const definition of achievementDefinitions) {
+      if (definition.element === symbol) updateAchievementCard(definition, unlocked);
+    }
+  }
+
+  function updateAchievementCard(definition, unlocked = getUnlockedAchievementSet()) {
+    const card = document.querySelector(`[data-achievement-id="${definition.id}"]`);
+    if (!card) return;
+    const progress = getAchievementProgress(definition);
+    const percent = Math.min(100, (progress / definition.target) * 100);
+    const isUnlocked = unlocked.has(definition.id);
+    card.classList.toggle("unlocked", isUnlocked);
+    const progressText = card.querySelector('[data-role="achievement-progress-text"]');
+    const progressFill = card.querySelector('[data-role="achievement-progress-fill"]');
+    if (progressText) progressText.textContent = isUnlocked ? `Unlocked · ${formatNumber(progress)} taps` : `${formatNumber(Math.min(progress, definition.target))} / ${formatNumber(definition.target)}`;
+    if (progressFill) progressFill.style.setProperty("--achievement-progress", `${percent}%`);
   }
 
   function summarizeAchievementBoosts() {
