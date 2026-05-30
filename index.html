@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="active-tap.css" />
   <link rel="stylesheet" href="ui-shell.css" />
+  <link rel="stylesheet" href="achievements.css" />
 </head>
 <body class="lab-not-started">
   <div class="app-shell">
@@ -91,6 +92,7 @@
 
       <div class="menu-tabs" role="tablist" aria-label="Menu sections">
         <button class="menu-tab-button active" type="button" data-menu-tab="stats">Stats</button>
+        <button class="menu-tab-button" type="button" data-menu-tab="achievements">Achievements</button>
         <button class="menu-tab-button" type="button" data-menu-tab="save">Save</button>
         <button class="menu-tab-button research-tab-button ui-hidden" type="button" data-menu-tab="research">Research</button>
       </div>
@@ -107,6 +109,17 @@
             <div class="menu-stat"><span>Discovery Discount</span><strong id="menu-discovery-discount">0%</strong></div>
           </div>
         </div>
+      </section>
+
+      <section class="menu-tab-panel" data-menu-panel="achievements">
+        <div class="menu-section-card">
+          <h3>Achievements</h3>
+          <div class="achievement-summary">
+            <div class="menu-stat"><span>Unlocked</span><strong id="achievement-count">0 / 0</strong></div>
+            <div class="menu-stat"><span>Active Boosts</span><strong id="achievement-boost-summary">No achievement boosts yet.</strong></div>
+          </div>
+        </div>
+        <div id="achievement-list" class="achievement-list"></div>
       </section>
 
       <section class="menu-tab-panel" data-menu-panel="save">
@@ -138,6 +151,7 @@
   <script src="economy-tuning.js"></script>
   <script src="active-tap.js"></script>
   <script src="ui-shell.js"></script>
+  <script src="achievements.js"></script>
   <script src="dev-checks.js"></script>
 </body>
 </html>
