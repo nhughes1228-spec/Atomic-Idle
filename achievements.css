@@ -1,0 +1,130 @@
+.achievement-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.achievement-list {
+  display: grid;
+  gap: 10px;
+}
+
+.achievement-card {
+  display: grid;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(248, 251, 253, 0.78);
+  padding: 12px;
+  opacity: 0.58;
+}
+
+.achievement-card.unlocked {
+  opacity: 1;
+  background: linear-gradient(145deg, rgba(47, 128, 237, 0.12), rgba(255, 255, 255, 0.86));
+  border-color: rgba(47, 128, 237, 0.24);
+}
+
+.achievement-card h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: -0.025em;
+}
+
+.achievement-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.achievement-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  color: var(--blue-deep);
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.achievement-progress {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(100, 117, 134, 0.16);
+}
+
+.achievement-progress-fill {
+  display: block;
+  height: 100%;
+  width: var(--achievement-progress, 0%);
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+}
+
+.achievement-reward {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(35, 163, 109, 0.12);
+  color: #16744d;
+  padding: 5px 8px;
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.achievement-toast {
+  position: fixed;
+  left: 50%;
+  top: 18px;
+  z-index: 95;
+  width: min(420px, calc(100vw - 36px));
+  border: 1px solid rgba(47, 128, 237, 0.28);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 20px 60px rgba(19, 36, 51, 0.20);
+  padding: 13px 15px;
+  translate: -50% -16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, translate 160ms ease;
+}
+
+.achievement-toast.show {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+.achievement-toast span {
+  display: block;
+  color: var(--blue-deep);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.achievement-toast strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 1rem;
+  font-weight: 950;
+  letter-spacing: -0.035em;
+}
+
+.achievement-toast p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+@media (max-width: 640px) {
+  .achievement-summary {
+    grid-template-columns: 1fr;
+  }
+}
