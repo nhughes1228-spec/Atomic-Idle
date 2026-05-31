@@ -9,6 +9,7 @@
   const originalUpdateTableState = updateTableState;
   let activeTapButton = null;
   let activePointerId = null;
+  const tilePointerIds = new Map();
 
   document.addEventListener("selectstart", event => {
     if (event.target.closest?.(".app-shell")) event.preventDefault();
@@ -35,6 +36,7 @@
 
   renderTable = function renderTableWithActiveTapTarget() {
     originalRenderTable();
+    wireElementTilePointerSelection();
     renderActiveTapTarget();
     updateActiveTapTarget();
   };
@@ -46,6 +48,51 @@
 
   function suppressSelectionGesture(event) {
     event.preventDefault();
+  }
+
+  function isInsideElement(event, elementNode) {
+    if (!elementNode) return false;
+    const rect = elementNode.getBoundingClientRect();
+    return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+  }
+
+  function wireElementTilePointerSelection() {
+    for (const element of elements) {
+      const refs = tileRefs.get(element.symbol);
+      const tile = refs?.tile;
+      if (!tile || tile.dataset.pointerSelectionWired === "true") continue;
+      tile.dataset.pointerSelectionWired = "true";
+
+      tile.addEventListener("contextmenu", suppressSelectionGesture);
+      tile.addEventListener("dragstart", suppressSelectionGesture);
+      tile.addEventListener("touchstart", event => event.preventDefault(), { passive: false });
+      tile.addEventListener("pointerdown", event => {
+        event.preventDefault();
+        tilePointerIds.set(element.symbol, event.pointerId);
+        tile.setPointerCapture?.(event.pointerId);
+        tile.classList.add("tile-pressed");
+      });
+      tile.addEventListener("pointerup", event => {
+        event.preventDefault();
+        const pointerId = tilePointerIds.get(element.symbol);
+        if (pointerId !== undefined && pointerId !== event.pointerId) return;
+        tile.releasePointerCapture?.(event.pointerId);
+        tilePointerIds.delete(element.symbol);
+        tile.classList.remove("tile-pressed");
+        if (isInsideElement(event, tile)) unlockElement(element.symbol, event);
+      });
+      tile.addEventListener("pointercancel", event => {
+        tile.releasePointerCapture?.(event.pointerId);
+        tilePointerIds.delete(element.symbol);
+        tile.classList.remove("tile-pressed");
+      });
+      tile.addEventListener("pointerleave", () => tile.classList.remove("tile-pressed"));
+      tile.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        event.stopPropagation();
+      });
+    }
   }
 
   function setPressed(isPressed) {
