@@ -4,6 +4,32 @@
   gap: 10px;
 }
 
+.achievement-category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.achievement-category-tab {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(248, 251, 253, 0.84);
+  color: var(--muted-strong);
+  cursor: pointer;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+}
+
+.achievement-category-tab.active {
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(47, 128, 237, 0.18);
+}
+
 .achievement-list {
   display: grid;
   gap: 10px;
@@ -126,5 +152,10 @@
 @media (max-width: 640px) {
   .achievement-summary {
     grid-template-columns: 1fr;
+  }
+
+  .achievement-category-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
