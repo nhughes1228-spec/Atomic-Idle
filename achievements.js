@@ -22,6 +22,8 @@
   };
 
   const FAMILY_REWARD_MULTIPLIER = 1.08;
+  const ALL_ACHIEVEMENTS_TAB = "All";
+  let activeAchievementCategory = ALL_ACHIEVEMENTS_TAB;
 
   const elementFamilies = [
     { id: "noble_gases", name: "Noble Gases", categories: ["noble-gas"] },
@@ -57,11 +59,11 @@
       }
     }
 
-    addTieredGlobal(definitions, "total_taps", "Total Taps", "Tap the active element {target} total times.", [1000, 10000, 100000, 1000000], ["tiny", "small", "medium", "large"], current => current.achievementStats.totalTaps || 0);
-    addTieredGlobal(definitions, "discoveries", "Discoveries", "Discover {target} elements.", [2, 5, 10, 18, 36], ["tiny", "small", "medium", "large", "huge"], current => getUnlockedElements(current).length);
-    addTieredGlobal(definitions, "level_landmark", "Level Landmarks", "Reach Lv. {target} on any element.", [25, 50, 100, 250, 500], ["tiny", "small", "medium", "large", "huge"], current => Math.max(...elements.map(element => getElementState(current, element.symbol)?.level || 0)));
-    addTieredGlobal(definitions, "prestige", "Published Research", "Publish Research {target} times.", [1, 3, 5, 10, 25], ["small", "medium", "large", "huge", "huge"], current => current.publishedCount || 0);
-    addTieredGlobal(definitions, "lifetime_particles", "Particle Hoard", "Earn {target} lifetime Particles.", [1000000, 1000000000, 1000000000000, 1000000000000000], ["tiny", "small", "medium", "large"], current => current.lifetimeParticles || 0);
+    addTieredGlobal(definitions, "total_taps", "Total Taps", "Tap the active element {target} total times.", [1000, 10000, 100000, 1000000], ["tiny", "small", "medium", "large"], current => current.achievementStats.totalTaps || 0, "Total Taps");
+    addTieredGlobal(definitions, "discoveries", "Discoveries", "Discover {target} elements.", [2, 5, 10, 18, 36], ["tiny", "small", "medium", "large", "huge"], current => getUnlockedElements(current).length, "Discoveries");
+    addTieredGlobal(definitions, "level_landmark", "Level Landmarks", "Reach Lv. {target} on any element.", [25, 50, 100, 250, 500], ["tiny", "small", "medium", "large", "huge"], current => Math.max(...elements.map(element => getElementState(current, element.symbol)?.level || 0)), "Level Landmarks");
+    addTieredGlobal(definitions, "prestige", "Published Research", "Publish Research {target} times.", [1, 3, 5, 10, 25], ["small", "medium", "large", "huge", "huge"], current => current.publishedCount || 0, "Prestige");
+    addTieredGlobal(definitions, "lifetime_particles", "Particle Hoard", "Earn {target} lifetime Particles.", [1000000, 1000000000, 1000000000000, 1000000000000000], ["tiny", "small", "medium", "large"], current => current.lifetimeParticles || 0, "Lifetime Particles");
 
     for (const family of elementFamilies) {
       const familyElements = getFamilyElements(family);
@@ -86,13 +88,13 @@
     return definitions;
   }
 
-  function addTieredGlobal(definitions, idPrefix, namePrefix, descriptionTemplate, targets, rewardKeys, progressFn) {
+  function addTieredGlobal(definitions, idPrefix, namePrefix, descriptionTemplate, targets, rewardKeys, progressFn, category = "Global Progress") {
     targets.forEach((target, index) => {
       const rewardKey = rewardKeys[index] || rewardKeys.at(-1) || "small";
       const multiplier = GLOBAL_ACHIEVEMENT_REWARDS[rewardKey];
       definitions.push({
         id: `${idPrefix}_${target}`,
-        category: "Global Progress",
+        category,
         type: idPrefix,
         target,
         name: `${namePrefix}: ${formatNumber(target)}`,
@@ -107,6 +109,15 @@
 
   function getFamilyElements(family) {
     return elements.filter(element => family.categories.includes(element.category));
+  }
+
+  function getAchievementCategories() {
+    return [ALL_ACHIEVEMENTS_TAB, ...Array.from(new Set(achievementDefinitions.map(definition => definition.category)))];
+  }
+
+  function getVisibleAchievementDefinitions() {
+    if (activeAchievementCategory === ALL_ACHIEVEMENTS_TAB) return achievementDefinitions;
+    return achievementDefinitions.filter(definition => definition.category === activeAchievementCategory);
   }
 
   function ensureAchievementState() {
@@ -206,6 +217,31 @@
     achievementToastTimer = setTimeout(() => toast.classList.remove("show"), 3200);
   }
 
+  function renderAchievementCategoryTabs() {
+    const list = document.getElementById("achievement-list");
+    if (!list) return;
+    let tabs = document.getElementById("achievement-category-tabs");
+    if (!tabs) {
+      tabs = document.createElement("div");
+      tabs.id = "achievement-category-tabs";
+      tabs.className = "achievement-category-tabs";
+      list.before(tabs);
+    }
+
+    tabs.innerHTML = "";
+    for (const category of getAchievementCategories()) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `achievement-category-tab ${category === activeAchievementCategory ? "active" : ""}`;
+      button.textContent = category;
+      button.addEventListener("click", () => {
+        activeAchievementCategory = category;
+        renderAchievementsPanel();
+      });
+      tabs.appendChild(button);
+    }
+  }
+
   function renderAchievementsPanel() {
     ensureAchievementState();
     const list = document.getElementById("achievement-list");
@@ -217,8 +253,9 @@
     if (count) count.textContent = `${unlocked.size} / ${achievementDefinitions.length}`;
     if (boost) boost.textContent = summarizeAchievementBoosts();
 
+    renderAchievementCategoryTabs();
     list.innerHTML = "";
-    for (const definition of achievementDefinitions) {
+    for (const definition of getVisibleAchievementDefinitions()) {
       const card = document.createElement("article");
       card.className = "achievement-card";
       card.dataset.achievementId = definition.id;
@@ -241,7 +278,7 @@
     const unlocked = getUnlockedAchievementSet();
     if (count) count.textContent = `${unlocked.size} / ${achievementDefinitions.length}`;
     if (boost) boost.textContent = summarizeAchievementBoosts();
-    for (const definition of achievementDefinitions) updateAchievementCard(definition, unlocked);
+    for (const definition of getVisibleAchievementDefinitions()) updateAchievementCard(definition, unlocked);
   }
 
   function updateAchievementCard(definition, unlocked = getUnlockedAchievementSet()) {
