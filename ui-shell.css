@@ -80,20 +80,24 @@ body.menu-open .game-menu-overlay {
 
 .menu-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 14px;
 }
 
 .menu-tab-button {
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: rgba(248, 251, 253, 0.78);
   color: var(--muted-strong);
   cursor: pointer;
-  padding: 9px 10px;
-  font-size: 0.78rem;
+  padding: 9px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.74rem;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .menu-tab-button.active {
@@ -142,6 +146,7 @@ body.menu-open .game-menu-overlay {
 }
 
 .menu-stat {
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.68);
@@ -198,5 +203,30 @@ body.lab-not-started .menu-toggle {
     right: 10px;
     width: calc(100vw - 20px);
     max-height: calc(100vh - 20px);
+  }
+}
+
+@media (max-width: 640px) {
+  .menu-toggle {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+  }
+
+  .menu-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-menu-panel {
+    padding: 12px;
+    border-radius: 22px;
+  }
+
+  .menu-section-card {
+    padding: 11px;
+  }
+
+  .menu-stats-grid {
+    grid-template-columns: 1fr;
   }
 }
