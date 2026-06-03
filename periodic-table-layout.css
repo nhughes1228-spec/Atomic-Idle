@@ -1,0 +1,52 @@
+/* Periodic table layout polish.
+   Adds the traditional visual gap before the lanthanide and actinide rows. */
+
+.category-lanthanide,
+.category-actinide {
+  margin-top: 30px;
+}
+
+.category-lanthanide {
+  --active-bg: linear-gradient(145deg, #ffffff, #d7f5ff 42%, #93ddf0);
+  --active-border: rgba(35, 148, 174, 0.98);
+  --active-shadow: rgba(35, 148, 174, 0.30);
+  --active-glow: rgba(35, 183, 217, 0.26);
+  --active-plinth: rgba(26, 126, 150, 0.88);
+  background: linear-gradient(145deg, #ffffff, #edfaff);
+}
+
+.category-actinide {
+  --active-bg: linear-gradient(145deg, #ffffff, #ffd8c7 42%, #ffab86);
+  --active-border: rgba(190, 91, 45, 0.98);
+  --active-shadow: rgba(190, 91, 45, 0.30);
+  --active-glow: rgba(230, 116, 62, 0.26);
+  --active-plinth: rgba(160, 75, 36, 0.88);
+  background: linear-gradient(145deg, #ffffff, #fff1eb);
+}
+
+.periodic-table {
+  padding-bottom: 92px;
+}
+
+body.lab-not-started .periodic-table {
+  padding-bottom: 92px;
+}
+
+@media (max-width: 760px) {
+  .category-lanthanide,
+  .category-actinide {
+    margin-top: 16px;
+  }
+
+  .periodic-table,
+  body.lab-not-started .periodic-table {
+    padding-bottom: 46px;
+  }
+}
+
+@media (max-width: 420px) {
+  .category-lanthanide,
+  .category-actinide {
+    margin-top: 12px;
+  }
+}
