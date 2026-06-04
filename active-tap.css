@@ -198,18 +198,15 @@ body.lab-not-started .element-tile.initial-element::before {
 }
 
 @media (max-width: 760px) {
-  .periodic-table {
-    position: relative;
-    padding-top: 205px !important;
-  }
-
+  .periodic-table,
   body.lab-not-started .periodic-table {
-    padding-top: 205px !important;
+    position: relative;
+    padding-top: 260px !important;
   }
 
   .active-tap-target {
     position: absolute;
-    top: 14px;
+    top: 18px;
     left: 50%;
     z-index: 75;
     width: min(178px, 52vw);
@@ -228,10 +225,11 @@ body.lab-not-started .element-tile.initial-element::before {
 @media (max-width: 420px) {
   .periodic-table,
   body.lab-not-started .periodic-table {
-    padding-top: 190px !important;
+    padding-top: 238px !important;
   }
 
   .active-tap-target {
+    top: 16px;
     width: min(164px, 56vw);
   }
 }
