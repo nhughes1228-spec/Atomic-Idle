@@ -73,7 +73,6 @@ body.lab-not-started .element-tile.initial-element::before {
   filter: blur(8px);
 }
 
-.active-tap-target.is-pressed,
 .active-tap-target:active {
   translate: 0 4px;
   scale: 0.955;
@@ -198,9 +197,41 @@ body.lab-not-started .element-tile.initial-element::before {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
+  .periodic-table {
+    position: relative;
+    padding-top: 205px !important;
+  }
+
+  body.lab-not-started .periodic-table {
+    padding-top: 205px !important;
+  }
+
   .active-tap-target {
-    grid-column: 5 / span 5;
-    width: 172px;
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    z-index: 75;
+    width: min(178px, 52vw);
+    translate: -50% 0;
+  }
+
+  .active-tap-target:active {
+    translate: -50% 4px;
+  }
+
+  .active-tap-symbol {
+    font-size: clamp(3rem, 17vw, 4.3rem);
+  }
+}
+
+@media (max-width: 420px) {
+  .periodic-table,
+  body.lab-not-started .periodic-table {
+    padding-top: 190px !important;
+  }
+
+  .active-tap-target {
+    width: min(164px, 56vw);
   }
 }
