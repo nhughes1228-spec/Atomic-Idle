@@ -43,6 +43,10 @@
     updateActiveTapTarget();
   };
 
+  function isMobileTableLayout() {
+    return window.matchMedia?.("(max-width: 760px)").matches;
+  }
+
   function performActiveTap(event) {
     event?.preventDefault?.();
     triggerTapFeedback(event);
@@ -89,15 +93,22 @@
       </span>
     `;
     activeTapButton.addEventListener("click", performActiveTap);
-    dom.periodicTable.appendChild(activeTapButton);
+
+    if (isMobileTableLayout()) {
+      activeTapButton.classList.add("active-tap-docked");
+      dom.periodicTable.parentElement?.insertBefore(activeTapButton, dom.periodicTable);
+    } else {
+      dom.periodicTable.appendChild(activeTapButton);
+    }
   }
 
   function updateActiveTapTarget() {
     if (!activeTapButton) return;
     const element = state.hasStarted ? getActiveElement() : elements[0];
     const elementState = getElementState(state, element.symbol);
+    const mobileClass = activeTapButton.classList.contains("active-tap-docked") ? " active-tap-docked" : "";
 
-    activeTapButton.className = `active-tap-target category-${element.category}`;
+    activeTapButton.className = `active-tap-target category-${element.category}${mobileClass}`;
     activeTapButton.querySelector('[data-role="active-number"]').textContent = element.atomicNumber;
     activeTapButton.querySelector('[data-role="active-level"]').textContent = state.hasStarted ? `Lv. ${elementState.level}` : "Start";
     activeTapButton.querySelector('[data-role="active-symbol"]').textContent = element.symbol;
