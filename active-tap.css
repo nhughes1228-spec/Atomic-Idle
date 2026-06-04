@@ -12,6 +12,12 @@ button,
   -webkit-user-drag: none;
 }
 
+.active-tap-mount {
+  display: grid;
+  place-items: center;
+  margin: 4px 0 18px;
+}
+
 .element-tile.active-click-target,
 body.lab-not-started .element-tile.initial-element {
   border-color: color-mix(in srgb, var(--active-border) 46%, transparent);
@@ -39,10 +45,6 @@ body.lab-not-started .element-tile.initial-element::before {
   z-index: 60;
   display: grid;
   grid-template-rows: auto 1fr auto auto;
-  grid-column: 6 / span 4;
-  grid-row: 1 / span 2;
-  align-self: center;
-  justify-self: center;
   width: clamp(172px, 17vw, 245px);
   aspect-ratio: 1 / 1;
   min-height: 0;
@@ -190,31 +192,18 @@ body.lab-not-started .element-tile.initial-element::before {
   to { opacity: 0; scale: 15; }
 }
 
-@media (max-width: 900px) {
-  .active-tap-target {
-    grid-column: 5 / span 4;
-    width: clamp(160px, 25vw, 230px);
-  }
-}
-
 @media (max-width: 760px) {
+  .active-tap-mount {
+    margin: 2px 0 18px;
+  }
+
   .periodic-table,
   body.lab-not-started .periodic-table {
-    padding-top: 18px !important;
+    padding-top: 14px !important;
   }
 
-  .active-tap-target.active-tap-docked {
-    position: relative;
-    top: auto;
-    left: auto;
-    display: grid;
+  .active-tap-target {
     width: min(178px, 52vw);
-    margin: 4px auto 22px;
-    translate: 0 0;
-  }
-
-  .active-tap-target.active-tap-docked:active {
-    translate: 0 4px;
   }
 
   .active-tap-symbol {
@@ -223,13 +212,7 @@ body.lab-not-started .element-tile.initial-element::before {
 }
 
 @media (max-width: 420px) {
-  .periodic-table,
-  body.lab-not-started .periodic-table {
-    padding-top: 14px !important;
-  }
-
-  .active-tap-target.active-tap-docked {
+  .active-tap-target {
     width: min(164px, 56vw);
-    margin-bottom: 18px;
   }
 }
