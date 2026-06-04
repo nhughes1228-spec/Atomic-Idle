@@ -200,21 +200,21 @@ body.lab-not-started .element-tile.initial-element::before {
 @media (max-width: 760px) {
   .periodic-table,
   body.lab-not-started .periodic-table {
+    padding-top: 18px !important;
+  }
+
+  .active-tap-target.active-tap-docked {
     position: relative;
-    padding-top: 260px !important;
-  }
-
-  .active-tap-target {
-    position: absolute;
-    top: 18px;
-    left: 50%;
-    z-index: 75;
+    top: auto;
+    left: auto;
+    display: grid;
     width: min(178px, 52vw);
-    translate: -50% 0;
+    margin: 4px auto 22px;
+    translate: 0 0;
   }
 
-  .active-tap-target:active {
-    translate: -50% 4px;
+  .active-tap-target.active-tap-docked:active {
+    translate: 0 4px;
   }
 
   .active-tap-symbol {
@@ -225,11 +225,11 @@ body.lab-not-started .element-tile.initial-element::before {
 @media (max-width: 420px) {
   .periodic-table,
   body.lab-not-started .periodic-table {
-    padding-top: 238px !important;
+    padding-top: 14px !important;
   }
 
-  .active-tap-target {
-    top: 16px;
+  .active-tap-target.active-tap-docked {
     width: min(164px, 56vw);
+    margin-bottom: 18px;
   }
 }
