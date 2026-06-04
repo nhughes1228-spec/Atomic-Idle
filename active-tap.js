@@ -8,11 +8,9 @@
   const originalRenderTable = renderTable;
   const originalUpdateTableState = updateTableState;
   let activeTapButton = null;
-  let activePointerId = null;
-  const tilePointerIds = new Map();
 
   document.addEventListener("selectstart", event => {
-    if (event.target.closest?.(".app-shell")) event.preventDefault();
+    if (event.target.closest?.(".active-tap-target")) event.preventDefault();
   });
 
   unlockElement = function unlockOrSelectElement(symbol, event) {
@@ -36,7 +34,6 @@
 
   renderTable = function renderTableWithActiveTapTarget() {
     originalRenderTable();
-    wireElementTilePointerSelection();
     renderActiveTapTarget();
     updateActiveTapTarget();
   };
@@ -46,67 +43,8 @@
     updateActiveTapTarget();
   };
 
-  function suppressSelectionGesture(event) {
-    event.preventDefault();
-  }
-
-  function isInsideElement(event, elementNode) {
-    if (!elementNode) return false;
-    const rect = elementNode.getBoundingClientRect();
-    return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-  }
-
-  function wireElementTilePointerSelection() {
-    for (const element of elements) {
-      const refs = tileRefs.get(element.symbol);
-      const tile = refs?.tile;
-      if (!tile || tile.dataset.pointerSelectionWired === "true") continue;
-      tile.dataset.pointerSelectionWired = "true";
-
-      tile.addEventListener("contextmenu", suppressSelectionGesture);
-      tile.addEventListener("dragstart", suppressSelectionGesture);
-      tile.addEventListener("touchstart", event => event.preventDefault(), { passive: false });
-      tile.addEventListener("pointerdown", event => {
-        event.preventDefault();
-        tilePointerIds.set(element.symbol, event.pointerId);
-        tile.setPointerCapture?.(event.pointerId);
-        tile.classList.add("tile-pressed");
-      });
-      tile.addEventListener("pointerup", event => {
-        event.preventDefault();
-        const pointerId = tilePointerIds.get(element.symbol);
-        if (pointerId !== undefined && pointerId !== event.pointerId) return;
-        tile.releasePointerCapture?.(event.pointerId);
-        tilePointerIds.delete(element.symbol);
-        tile.classList.remove("tile-pressed");
-        if (isInsideElement(event, tile)) unlockElement(element.symbol, event);
-      });
-      tile.addEventListener("pointercancel", event => {
-        tile.releasePointerCapture?.(event.pointerId);
-        tilePointerIds.delete(element.symbol);
-        tile.classList.remove("tile-pressed");
-      });
-      tile.addEventListener("pointerleave", () => tile.classList.remove("tile-pressed"));
-      tile.addEventListener("click", event => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        event.stopPropagation();
-      });
-    }
-  }
-
-  function setPressed(isPressed) {
-    if (!activeTapButton) return;
-    activeTapButton.classList.toggle("is-pressed", isPressed);
-  }
-
-  function isInsideActiveTapTarget(event) {
-    if (!activeTapButton) return false;
-    const rect = activeTapButton.getBoundingClientRect();
-    return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-  }
-
   function performActiveTap(event) {
+    event?.preventDefault?.();
     triggerTapFeedback(event);
     if (!state.hasStarted) return activateLabFromHydrogen(event);
     return clickActiveElement(event);
@@ -150,33 +88,7 @@
         <span class="active-tap-chip" data-role="active-production"></span>
       </span>
     `;
-    activeTapButton.addEventListener("contextmenu", suppressSelectionGesture);
-    activeTapButton.addEventListener("dragstart", suppressSelectionGesture);
-    activeTapButton.addEventListener("touchstart", event => event.preventDefault(), { passive: false });
-    activeTapButton.addEventListener("pointerdown", event => {
-      event.preventDefault();
-      activePointerId = event.pointerId;
-      activeTapButton.setPointerCapture?.(event.pointerId);
-      setPressed(true);
-    });
-    activeTapButton.addEventListener("pointerup", event => {
-      event.preventDefault();
-      if (activePointerId !== null && event.pointerId !== activePointerId) return;
-      activeTapButton.releasePointerCapture?.(event.pointerId);
-      activePointerId = null;
-      setPressed(false);
-      if (isInsideActiveTapTarget(event)) performActiveTap(event);
-    });
-    activeTapButton.addEventListener("pointercancel", event => {
-      activeTapButton.releasePointerCapture?.(event.pointerId);
-      activePointerId = null;
-      setPressed(false);
-    });
-    activeTapButton.addEventListener("pointerleave", () => setPressed(false));
-    activeTapButton.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-    });
+    activeTapButton.addEventListener("click", performActiveTap);
     dom.periodicTable.appendChild(activeTapButton);
   }
 
