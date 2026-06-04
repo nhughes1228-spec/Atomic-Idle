@@ -1,5 +1,5 @@
 // Active tap target UI layer.
-// Periodic table tiles select/discover elements; the large center tile is the intentional particle tap zone.
+// Periodic table tiles select/discover elements; the large active card is the intentional particle tap zone.
 
 (function setupActiveTapTarget() {
   if (typeof renderTable !== "function" || typeof unlockElement !== "function") return;
@@ -8,6 +8,7 @@
   const originalRenderTable = renderTable;
   const originalUpdateTableState = updateTableState;
   let activeTapButton = null;
+  let activeTapMount = null;
 
   document.addEventListener("selectstart", event => {
     if (event.target.closest?.(".active-tap-target")) event.preventDefault();
@@ -33,9 +34,8 @@
   };
 
   renderTable = function renderTableWithActiveTapTarget() {
-    removeExistingActiveTapTargets();
     originalRenderTable();
-    renderActiveTapTarget();
+    ensureActiveTapTarget();
     updateActiveTapTarget();
   };
 
@@ -44,13 +44,22 @@
     updateActiveTapTarget();
   };
 
-  function removeExistingActiveTapTargets() {
-    document.querySelectorAll(".active-tap-target").forEach(target => target.remove());
-    activeTapButton = null;
+  function ensureActiveTapMount() {
+    if (activeTapMount?.isConnected) return activeTapMount;
+    activeTapMount = document.getElementById("active-tap-mount");
+    if (!activeTapMount) {
+      activeTapMount = document.createElement("div");
+      activeTapMount.id = "active-tap-mount";
+      activeTapMount.className = "active-tap-mount";
+      dom.periodicTable.parentElement?.insertBefore(activeTapMount, dom.periodicTable);
+    }
+    return activeTapMount;
   }
 
-  function isMobileTableLayout() {
-    return window.matchMedia?.("(max-width: 760px)").matches;
+  function removeOrphanActiveTapTargets() {
+    document.querySelectorAll(".active-tap-target").forEach(target => {
+      if (target !== activeTapButton) target.remove();
+    });
   }
 
   function performActiveTap(event) {
@@ -80,8 +89,15 @@
     setTimeout(() => ripple.remove(), 420);
   }
 
-  function renderActiveTapTarget() {
-    if (!dom.periodicTable) return;
+  function ensureActiveTapTarget() {
+    const mount = ensureActiveTapMount();
+    if (activeTapButton?.isConnected) {
+      if (activeTapButton.parentElement !== mount) mount.appendChild(activeTapButton);
+      removeOrphanActiveTapTargets();
+      return activeTapButton;
+    }
+
+    mount.querySelectorAll(".active-tap-target").forEach(target => target.remove());
     activeTapButton = document.createElement("button");
     activeTapButton.type = "button";
     activeTapButton.className = "active-tap-target category-nonmetal";
@@ -99,22 +115,18 @@
       </span>
     `;
     activeTapButton.addEventListener("click", performActiveTap);
-
-    if (isMobileTableLayout()) {
-      activeTapButton.classList.add("active-tap-docked");
-      dom.periodicTable.parentElement?.insertBefore(activeTapButton, dom.periodicTable);
-    } else {
-      dom.periodicTable.appendChild(activeTapButton);
-    }
+    mount.appendChild(activeTapButton);
+    removeOrphanActiveTapTargets();
+    return activeTapButton;
   }
 
   function updateActiveTapTarget() {
+    ensureActiveTapTarget();
     if (!activeTapButton) return;
     const element = state.hasStarted ? getActiveElement() : elements[0];
     const elementState = getElementState(state, element.symbol);
-    const mobileClass = activeTapButton.classList.contains("active-tap-docked") ? " active-tap-docked" : "";
 
-    activeTapButton.className = `active-tap-target category-${element.category}${mobileClass}`;
+    activeTapButton.className = `active-tap-target category-${element.category}`;
     activeTapButton.querySelector('[data-role="active-number"]').textContent = element.atomicNumber;
     activeTapButton.querySelector('[data-role="active-level"]').textContent = state.hasStarted ? `Lv. ${elementState.level}` : "Start";
     activeTapButton.querySelector('[data-role="active-symbol"]').textContent = element.symbol;
