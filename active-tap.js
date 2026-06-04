@@ -33,6 +33,7 @@
   };
 
   renderTable = function renderTableWithActiveTapTarget() {
+    removeExistingActiveTapTargets();
     originalRenderTable();
     renderActiveTapTarget();
     updateActiveTapTarget();
@@ -42,6 +43,11 @@
     originalUpdateTableState();
     updateActiveTapTarget();
   };
+
+  function removeExistingActiveTapTargets() {
+    document.querySelectorAll(".active-tap-target").forEach(target => target.remove());
+    activeTapButton = null;
+  }
 
   function isMobileTableLayout() {
     return window.matchMedia?.("(max-width: 760px)").matches;
