@@ -1,5 +1,9 @@
 // Active tap target UI layer.
-// Periodic table tiles select/discover elements; the large active card is the intentional particle tap zone.
+// Clean interaction model:
+// - The large active card is created once in a stable mount above the table.
+// - The large active card counts taps immediately on pointerdown for rapid input.
+// - Periodic table tiles keep their normal click behavior for selecting/unlocking.
+// - No touchend blockers, pointer capture, or document-level tap cancellation.
 
 (function setupActiveTapTarget() {
   if (typeof renderTable !== "function" || typeof unlockElement !== "function") return;
@@ -9,14 +13,14 @@
   const originalUpdateTableState = updateTableState;
   let activeTapButton = null;
   let activeTapMount = null;
-  let activePointerId = null;
+  let lastPointerTapAt = 0;
 
   document.addEventListener("selectstart", event => {
     if (event.target.closest?.(".active-tap-target")) event.preventDefault();
   });
 
   document.addEventListener("dblclick", event => {
-    if (!event.target.closest?.(".app-shell, .game-menu-overlay")) return;
+    if (!event.target.closest?.(".active-tap-target")) return;
     event.preventDefault();
     event.stopPropagation();
   }, { capture: true });
@@ -69,14 +73,7 @@
     });
   }
 
-  function isInsideActiveTapTarget(event) {
-    if (!activeTapButton) return false;
-    const rect = activeTapButton.getBoundingClientRect();
-    return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-  }
-
   function performActiveTap(event) {
-    event?.preventDefault?.();
     triggerTapFeedback(event);
     if (!state.hasStarted) return activateLabFromHydrogen(event);
     return clickActiveElement(event);
@@ -99,31 +96,16 @@
     ripple.style.left = `${x}px`;
     ripple.style.top = `${y}px`;
     activeTapButton.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 420);
+    setTimeout(() => ripple.remove(), 320);
   }
 
   function wireActiveTapButton() {
     activeTapButton.addEventListener("pointerdown", event => {
       event.preventDefault();
-      activePointerId = event.pointerId;
-      activeTapButton.classList.add("is-pressed");
-    });
-
-    activeTapButton.addEventListener("pointerup", event => {
-      event.preventDefault();
-      if (activePointerId !== null && event.pointerId !== activePointerId) return;
-      activePointerId = null;
-      activeTapButton.classList.remove("is-pressed");
-      if (isInsideActiveTapTarget(event)) performActiveTap(event);
-    });
-
-    activeTapButton.addEventListener("pointercancel", () => {
-      activePointerId = null;
-      activeTapButton.classList.remove("is-pressed");
-    });
-
-    activeTapButton.addEventListener("pointerleave", () => {
-      activeTapButton.classList.remove("is-pressed");
+      const now = performance.now();
+      if (now - lastPointerTapAt < 18) return;
+      lastPointerTapAt = now;
+      performActiveTap(event);
     });
 
     activeTapButton.addEventListener("click", event => {
