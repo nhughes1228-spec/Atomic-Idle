@@ -1,5 +1,6 @@
 // Research simplification pass.
 // For now, each Research adds a flat +5% to passive Particles/sec and click power.
+// Research no longer grants discovery discounts, level discounts, offline cap, or future Research gain.
 
 (function simplifyResearchEffects() {
   if (typeof BALANCE === "undefined") return;
@@ -18,9 +19,13 @@
 
   const originalRebuildDerivedEffects = rebuildDerivedEffects;
   rebuildDerivedEffects = function rebuildDerivedEffectsWithSimpleResearch(current) {
+    // Because the BALANCE research values above are already simplified before this runs,
+    // the original rebuild starts with +5% click/global per Research, then applies all
+    // purchased upgrade effects on top. Do not overwrite click/global after that point.
     originalRebuildDerivedEffects(current);
-    current.multipliers.click = 1 + (current.research || 0) * 0.05;
-    current.multipliers.global = 1 + (current.research || 0) * 0.05;
+
+    // Keep only the non-click/non-production Research perks disabled.
+    // These values are Research-specific and should not erase upgrade multipliers.
     current.bonuses.costReduction = 0;
     current.bonuses.offlineCapHours = 0;
     current.bonuses.researchGain = 1;
