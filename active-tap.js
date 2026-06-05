@@ -9,10 +9,27 @@
   const originalUpdateTableState = updateTableState;
   let activeTapButton = null;
   let activeTapMount = null;
+  let lastTouchEnd = 0;
 
   document.addEventListener("selectstart", event => {
     if (event.target.closest?.(".active-tap-target")) event.preventDefault();
   });
+
+  document.addEventListener("dblclick", event => {
+    if (!event.target.closest?.(".app-shell, .game-menu-overlay")) return;
+    event.preventDefault();
+    event.stopPropagation();
+  }, { capture: true });
+
+  document.addEventListener("touchend", event => {
+    if (!event.target.closest?.(".app-shell, .game-menu-overlay")) return;
+    const now = Date.now();
+    if (now - lastTouchEnd < 360) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    lastTouchEnd = now;
+  }, { capture: true, passive: false });
 
   unlockElement = function unlockOrSelectElement(symbol, event) {
     event?.preventDefault?.();
