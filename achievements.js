@@ -4,13 +4,15 @@
 (function setupAchievements() {
   if (typeof state === "undefined" || typeof elements === "undefined" || typeof getActiveElement !== "function") return;
 
-  const TAP_TIERS = [100, 1000, 10000, 100000, 1000000];
+  const TAP_TIERS = [100, 500, 1000, 2500, 5000, 10000];
+  const LEGACY_ELEMENT_TAP_TIERS = [100000, 1000000];
   const ELEMENT_TAP_REWARD_MULTIPLIERS = {
-    100: 1.05,
-    1000: 1.08,
-    10000: 1.12,
-    100000: 1.18,
-    1000000: 1.25
+    100: 1.03,
+    500: 1.035,
+    1000: 1.04,
+    2500: 1.045,
+    5000: 1.05,
+    10000: 1.06
   };
 
   const GLOBAL_ACHIEVEMENT_REWARDS = {
@@ -36,6 +38,7 @@
   ];
 
   const achievementDefinitions = buildAchievementDefinitions();
+  const achievementDefinitionIds = new Set(achievementDefinitions.map(definition => definition.id));
   let achievementToastTimer = null;
   let tapSaveCounter = 0;
 
@@ -45,14 +48,14 @@
     for (const element of elements) {
       for (const target of TAP_TIERS) {
         definitions.push({
-          id: `tap_${element.symbol.toLowerCase()}_${target}`,
+          id: elementTapAchievementId(element.symbol, target),
           category: "Element Taps",
           type: "element_taps",
           element: element.symbol,
           target,
           name: `${element.name} Taps ${formatNumber(target)}`,
           description: `Tap ${element.name} ${formatNumber(target)} times.`,
-          reward: `${element.symbol} production x${ELEMENT_TAP_REWARD_MULTIPLIERS[target].toFixed(2)}`,
+          reward: `${element.symbol} production x${ELEMENT_TAP_REWARD_MULTIPLIERS[target].toFixed(3)}`,
           rewardType: "element",
           multiplier: ELEMENT_TAP_REWARD_MULTIPLIERS[target]
         });
@@ -88,6 +91,9 @@
     return definitions;
   }
 
+  function elementTapAchievementId(symbol, target) { return `tap_${symbol.toLowerCase()}_${target}`; }
+  function retunedElementTapAchievementId(symbol, target) { return `retuned_tap_${symbol.toLowerCase()}_${target}`; }
+
   function addTieredGlobal(definitions, idPrefix, namePrefix, descriptionTemplate, targets, rewardKeys, progressFn, category = "Global Progress") {
     targets.forEach((target, index) => {
       const rewardKey = rewardKeys[index] || rewardKeys.at(-1) || "small";
@@ -120,6 +126,19 @@
     return achievementDefinitions.filter(definition => definition.category === activeAchievementCategory);
   }
 
+  function migrateRetunedElementTapAchievements() {
+    if (!Array.isArray(state.unlockedAchievements)) return;
+    const unlocked = new Set(state.unlockedAchievements);
+    for (const element of elements) {
+      for (const target of TAP_TIERS) {
+        const retunedId = retunedElementTapAchievementId(element.symbol, target);
+        if (unlocked.has(retunedId)) unlocked.add(elementTapAchievementId(element.symbol, target));
+      }
+      for (const target of LEGACY_ELEMENT_TAP_TIERS) unlocked.delete(elementTapAchievementId(element.symbol, target));
+    }
+    state.unlockedAchievements = Array.from(unlocked).filter(id => achievementDefinitionIds.has(id));
+  }
+
   function ensureAchievementState() {
     if (!state.achievementStats) state.achievementStats = {};
     if (!state.achievementStats.elementTaps) state.achievementStats.elementTaps = {};
@@ -130,11 +149,12 @@
     for (const element of elements) {
       if (!Number.isFinite(state.achievementStats.elementTaps[element.symbol])) state.achievementStats.elementTaps[element.symbol] = 0;
     }
+    migrateRetunedElementTapAchievements();
   }
 
   function getUnlockedAchievementSet() {
     ensureAchievementState();
-    return new Set(state.unlockedAchievements);
+    return new Set(state.unlockedAchievements.filter(id => achievementDefinitionIds.has(id)));
   }
 
   function getAchievementProgress(definition) {
@@ -180,6 +200,7 @@
     }
 
     if (earnedAny) {
+      state.unlockedAchievements = Array.from(new Set(state.unlockedAchievements)).filter(id => achievementDefinitionIds.has(id));
       rebuildDerivedEffects(state);
       saveGame(false);
       renderFull();
@@ -255,21 +276,62 @@
 
     renderAchievementCategoryTabs();
     list.innerHTML = "";
-    for (const definition of getVisibleAchievementDefinitions()) {
-      const card = document.createElement("article");
-      card.className = "achievement-card";
-      card.dataset.achievementId = definition.id;
-      card.innerHTML = `
-        <div class="achievement-meta"><span>${definition.category}</span><span data-role="achievement-progress-text">0 / ${formatNumber(definition.target)}</span></div>
-        <h4>${definition.name}</h4>
-        <p>${definition.description}</p>
-        <div class="achievement-progress" aria-hidden="true"><span data-role="achievement-progress-fill" class="achievement-progress-fill" style="--achievement-progress:0%"></span></div>
-        <span class="achievement-reward">${definition.reward}</span>
-      `;
-      list.appendChild(card);
-    }
+
+    const visibleDefinitions = getVisibleAchievementDefinitions();
+    const nonElementDefinitions = visibleDefinitions.filter(definition => definition.type !== "element_taps");
+    const elementTapDefinitions = visibleDefinitions.filter(definition => definition.type === "element_taps");
+
+    for (const definition of nonElementDefinitions) renderAchievementCard(list, definition, unlocked);
+    if (elementTapDefinitions.length) renderElementTapGroups(list, elementTapDefinitions, unlocked);
 
     updateAllAchievementProgressDisplays();
+  }
+
+  function renderAchievementCard(parent, definition, unlocked = getUnlockedAchievementSet()) {
+    const isUnlocked = unlocked.has(definition.id);
+    const card = document.createElement("article");
+    card.className = `achievement-card ${isUnlocked ? "unlocked compact" : ""}`;
+    card.dataset.achievementId = definition.id;
+    card.innerHTML = `
+      <div class="achievement-meta"><span>${definition.category}</span><span data-role="achievement-progress-text">0 / ${formatNumber(definition.target)}</span></div>
+      <h4>${definition.name}</h4>
+      <p>${definition.description}</p>
+      <div class="achievement-progress" aria-hidden="true"><span data-role="achievement-progress-fill" class="achievement-progress-fill" style="--achievement-progress:0%"></span></div>
+      <span class="achievement-reward">${definition.reward}</span>
+    `;
+    parent.appendChild(card);
+    return card;
+  }
+
+  function renderElementTapGroups(parent, definitions, unlocked) {
+    const byElement = new Map();
+    for (const definition of definitions) {
+      if (!byElement.has(definition.element)) byElement.set(definition.element, []);
+      byElement.get(definition.element).push(definition);
+    }
+
+    for (const element of elements) {
+      const groupDefinitions = byElement.get(element.symbol);
+      if (!groupDefinitions?.length) continue;
+      groupDefinitions.sort((a, b) => a.target - b.target);
+      const completed = groupDefinitions.filter(definition => unlocked.has(definition.id)).length;
+      const isComplete = completed === groupDefinitions.length;
+      const taps = state.achievementStats.elementTaps[element.symbol] || 0;
+      const group = document.createElement("details");
+      group.className = `achievement-element-group ${isComplete ? "complete" : ""}`;
+      group.dataset.elementSymbol = element.symbol;
+      group.open = !isComplete;
+      group.innerHTML = `
+        <summary class="achievement-element-summary">
+          <span><strong>${element.symbol}</strong> ${element.name}</span>
+          <span data-role="element-achievement-summary">${completed} / ${groupDefinitions.length} · ${formatNumber(taps)} taps</span>
+        </summary>
+        <div class="achievement-element-cards"></div>
+      `;
+      const cards = group.querySelector(".achievement-element-cards");
+      for (const definition of groupDefinitions) renderAchievementCard(cards, definition, unlocked);
+      parent.appendChild(group);
+    }
   }
 
   function updateAllAchievementProgressDisplays() {
@@ -279,6 +341,22 @@
     if (count) count.textContent = `${unlocked.size} / ${achievementDefinitions.length}`;
     if (boost) boost.textContent = summarizeAchievementBoosts();
     for (const definition of getVisibleAchievementDefinitions()) updateAchievementCard(definition, unlocked);
+    updateElementGroupSummaries(unlocked);
+  }
+
+  function updateElementGroupSummaries(unlocked = getUnlockedAchievementSet()) {
+    document.querySelectorAll(".achievement-element-group").forEach(group => {
+      const symbol = group.dataset.elementSymbol;
+      const element = elements.find(item => item.symbol === symbol);
+      if (!element) return;
+      const groupDefinitions = achievementDefinitions.filter(definition => definition.type === "element_taps" && definition.element === symbol);
+      const completed = groupDefinitions.filter(definition => unlocked.has(definition.id)).length;
+      const isComplete = completed === groupDefinitions.length;
+      const taps = state.achievementStats.elementTaps[symbol] || 0;
+      group.classList.toggle("complete", isComplete);
+      const summary = group.querySelector('[data-role="element-achievement-summary"]');
+      if (summary) summary.textContent = `${completed} / ${groupDefinitions.length} · ${formatNumber(taps)} taps`;
+    });
   }
 
   function updateAchievementCard(definition, unlocked = getUnlockedAchievementSet()) {
@@ -288,6 +366,7 @@
     const percent = Math.min(100, (progress / definition.target) * 100);
     const isUnlocked = unlocked.has(definition.id);
     card.classList.toggle("unlocked", isUnlocked);
+    card.classList.toggle("compact", isUnlocked);
     const progressText = card.querySelector('[data-role="achievement-progress-text"]');
     const progressFill = card.querySelector('[data-role="achievement-progress-fill"]');
     if (progressText) progressText.textContent = isUnlocked ? `Unlocked · ${formatProgress(progress, definition)}` : `${formatProgress(Math.min(progress, definition.target), definition)} / ${formatProgress(definition.target, definition)}`;
