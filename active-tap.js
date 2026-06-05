@@ -9,7 +9,7 @@
   const originalUpdateTableState = updateTableState;
   let activeTapButton = null;
   let activeTapMount = null;
-  let lastTouchEnd = 0;
+  let activePointerId = null;
 
   document.addEventListener("selectstart", event => {
     if (event.target.closest?.(".active-tap-target")) event.preventDefault();
@@ -20,16 +20,6 @@
     event.preventDefault();
     event.stopPropagation();
   }, { capture: true });
-
-  document.addEventListener("touchend", event => {
-    if (!event.target.closest?.(".app-shell, .game-menu-overlay")) return;
-    const now = Date.now();
-    if (now - lastTouchEnd < 360) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    lastTouchEnd = now;
-  }, { capture: true, passive: false });
 
   unlockElement = function unlockOrSelectElement(symbol, event) {
     event?.preventDefault?.();
@@ -79,6 +69,12 @@
     });
   }
 
+  function isInsideActiveTapTarget(event) {
+    if (!activeTapButton) return false;
+    const rect = activeTapButton.getBoundingClientRect();
+    return event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+  }
+
   function performActiveTap(event) {
     event?.preventDefault?.();
     triggerTapFeedback(event);
@@ -106,6 +102,36 @@
     setTimeout(() => ripple.remove(), 420);
   }
 
+  function wireActiveTapButton() {
+    activeTapButton.addEventListener("pointerdown", event => {
+      event.preventDefault();
+      activePointerId = event.pointerId;
+      activeTapButton.classList.add("is-pressed");
+    });
+
+    activeTapButton.addEventListener("pointerup", event => {
+      event.preventDefault();
+      if (activePointerId !== null && event.pointerId !== activePointerId) return;
+      activePointerId = null;
+      activeTapButton.classList.remove("is-pressed");
+      if (isInsideActiveTapTarget(event)) performActiveTap(event);
+    });
+
+    activeTapButton.addEventListener("pointercancel", () => {
+      activePointerId = null;
+      activeTapButton.classList.remove("is-pressed");
+    });
+
+    activeTapButton.addEventListener("pointerleave", () => {
+      activeTapButton.classList.remove("is-pressed");
+    });
+
+    activeTapButton.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+  }
+
   function ensureActiveTapTarget() {
     const mount = ensureActiveTapMount();
     if (activeTapButton?.isConnected) {
@@ -131,7 +157,7 @@
         <span class="active-tap-chip" data-role="active-production"></span>
       </span>
     `;
-    activeTapButton.addEventListener("click", performActiveTap);
+    wireActiveTapButton();
     mount.appendChild(activeTapButton);
     removeOrphanActiveTapTargets();
     return activeTapButton;
