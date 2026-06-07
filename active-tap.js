@@ -160,5 +160,7 @@
     activeTapButton.querySelector('[data-role="active-production"]').textContent = state.hasStarted ? `${formatNumber(getElementProduction(element))} / sec` : "0 / sec";
   }
 
+  window.refreshActiveTapTarget = updateActiveTapTarget;
+
   renderFull();
 })();
