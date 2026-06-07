@@ -73,6 +73,10 @@
     });
   }
 
+  function useLightweightTapFeedback() {
+    return window.matchMedia?.("(pointer: coarse)").matches || window.innerWidth <= 760;
+  }
+
   function performActiveTap(event) {
     triggerTapFeedback(event);
     if (!state.hasStarted) return activateLabFromHydrogen(event);
@@ -90,6 +94,8 @@
     activeTapButton.classList.remove("tap-pop");
     void activeTapButton.offsetWidth;
     activeTapButton.classList.add("tap-pop");
+
+    if (useLightweightTapFeedback()) return;
 
     const ripple = document.createElement("span");
     ripple.className = "tap-ripple";
